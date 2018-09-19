@@ -1,0 +1,12 @@
+[package]
+name = "stovoy-tech"
+version = "0.1.0"
+authors = ["Steve Mostovoy <stevemostovoysm@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ctrlc = { version = "3.0", features = ["termination"] }
+futures = "0.1"
+gotham = "0.2.1"
+hyper = "0.11"
+mime = "0.3"
