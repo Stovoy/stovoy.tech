@@ -5,8 +5,7 @@ authors = ["Steve Mostovoy <stevemostovoysm@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+actix = "0.7"
+actix-web = "0.7"
 ctrlc = { version = "3.0", features = ["termination"] }
 futures = "0.1"
-gotham = "0.2.1"
-hyper = "0.11"
-mime = "0.3"

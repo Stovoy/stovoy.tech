@@ -1,2 +1,3 @@
 *
+!static/dist
 !target/release/stovoy-tech

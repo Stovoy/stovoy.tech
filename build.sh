@@ -10,4 +10,7 @@ docker run -it \
     rustlang/rust:nightly \
     -c "cd /app && cargo build --release"
 
+(cd static && yarn build)
+
+mkdir -p static/dist
 docker build -t stovoy.tech .

@@ -1,4 +1,8 @@
 FROM debian:stretch-slim
-ADD target/release/stovoy-tech /stovoy-tech
+
+WORKDIR /app
 EXPOSE 80
-ENTRYPOINT ["/stovoy-tech"]
+ENTRYPOINT ["/app/stovoy-tech"]
+
+ADD target/release/stovoy-tech /app/stovoy-tech
+ADD static/dist /app/static
