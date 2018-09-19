@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 actix = "0.7"
-actix-web = "0.7"
+actix-web = { version = "0.7", features = ["alpn"] }
 ctrlc = { version = "3.0", features = ["termination"] }
 futures = "0.1"
+openssl = "0.10"
