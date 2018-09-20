@@ -1,3 +1,5 @@
 *
 !static/dist
-!target/release/stovoy-tech
+!target/stovoy-tech
+!entrypoint.sh
+!nginx.conf

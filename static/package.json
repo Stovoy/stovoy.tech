@@ -10,5 +10,8 @@
   "scripts": {
     "build": "parcel build src/index.html --public-url /static/",
     "watch": "parcel watch src/index.html --public-url /static/"
+  },
+  "devDependencies": {
+    "node-sass": "^4.9.3"
   }
 }

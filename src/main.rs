@@ -5,7 +5,7 @@ extern crate futures;
 
 use actix_web::{
     App, fs, HttpRequest, HttpResponse, middleware, pred,
-    Result, server,
+    Result, server
 };
 use actix_web::http::{header, Method, StatusCode};
 use actix_web::middleware::session::{self, RequestSession};
@@ -60,8 +60,11 @@ fn main() {
             }))
         .shutdown_timeout(0);
 
+    let http_address = "0.0.0.0:8080";
+    let https_address = "0.0.0.0:8443";
+
     if Path::new("/ssl").exists() {
-        println!("Starting https server on 0.0.0.0:443");
+        println!("Starting https server on {}", https_address);
 
         let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
         builder
@@ -71,11 +74,11 @@ fn main() {
                .unwrap();
 
         app_server
-            .bind_ssl("0.0.0.0:443", builder)
-            .expect("Can not bind 0.0.0.0:443")
+            .bind_ssl(https_address, builder)
+            .expect(format!("Can not bind {}", https_address).as_str())
             .start();
 
-        println!("Starting http server on 0.0.0.0:80 for https redirection");
+        println!("Starting http server on {} for https redirection", http_address);
         server::new(
             || App::new()
                 .default_resource(|r| {
@@ -89,14 +92,14 @@ fn main() {
                             .finish()
                     });
                 }))
-            .bind("0.0.0.0:80")
-            .expect("Can not bind 0.0.0.0:80")
+            .bind(http_address)
+            .expect(format!("Can not bind {}", http_address).as_str())
             .start();
     } else {
-        println!("Starting http server on 0.0.0.0:80");
+        println!("Starting http server on {}", http_address);
         app_server
-            .bind("0.0.0.0:80")
-            .expect("Can not bind 0.0.0.0:80")
+            .bind(http_address)
+            .expect(format!("Can not bind {}", http_address).as_str())
             .start();
     }
 
