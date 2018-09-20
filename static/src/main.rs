@@ -3,7 +3,6 @@
 #[macro_use]
 extern crate stdweb;
 
-
 use std::cell::RefCell;
 use std::rc::Rc;
 use stdweb::traits::*;
@@ -15,6 +14,7 @@ use stdweb::web::{
     window,
 };
 use stdweb::web::event::KeyDownEvent;
+use stdweb::web::set_timeout;
 
 struct Renderer {
     color: Color,
@@ -51,8 +51,8 @@ impl Renderer {
 }
 
 struct SnakeGame {
-    head: (u32, u32),
-    board: [[u32; 5]; 5],
+    head: (i32, i32),
+    board: [[i32; 5]; 5],
     direction: Direction,
 }
 
@@ -67,7 +67,7 @@ impl SnakeGame {
     pub fn new() -> SnakeGame {
         SnakeGame {
             head: (0, 0),
-            board: [[0u32; 5]; 5],
+            board: [[0i32; 5]; 5],
             direction: Direction::Right,
         }
     }
@@ -100,6 +100,18 @@ impl SnakeGame {
             Direction::Left => self.head.0 -= 1,
             Direction::Down => self.head.1 += 1,
             Direction::Right => self.head.0 += 1,
+        }
+
+        if self.head.0 < 0 {
+            self.head.0 = 0;
+        } else if self.head.0 > 4 {
+            self.head.0 = 4;
+        }
+
+        if self.head.1 < 0 {
+            self.head.1 = 0;
+        } else if self.head.1 > 4 {
+            self.head.1 = 4;
         }
     }
 
@@ -144,6 +156,11 @@ fn animate(ts: f64, snake_game: Rc<RefCell<SnakeGame>>, mut renderer: Renderer) 
     window().request_animation_frame(|ts: f64| animate(ts, snake_game, renderer));
 }
 
+fn tick(snake_game: Rc<RefCell<SnakeGame>>) {
+    snake_game.borrow_mut().tick();
+    set_timeout(move || tick(snake_game), 250);
+}
+
 fn main() {
     stdweb::initialize();
 
@@ -159,6 +176,11 @@ fn main() {
     {
         let snake_game = snake_game.clone();
         window().request_animation_frame(|ts: f64| animate(ts, snake_game, renderer));
+    }
+
+    {
+        let snake_game = snake_game.clone();
+        set_timeout(move || tick(snake_game), 250);
     }
 
     stdweb::event_loop();
