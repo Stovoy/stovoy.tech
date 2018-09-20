@@ -2,3 +2,5 @@
 **/*.rs.bk
 .cargo-cache/
 .idea/
+resources/nginx.conf
+

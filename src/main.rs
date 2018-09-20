@@ -7,10 +7,8 @@ use actix_web::{
     App, fs, HttpRequest, HttpResponse, middleware, pred,
     Result, server
 };
-use actix_web::http::{header, Method, StatusCode};
+use actix_web::http::{Method, StatusCode};
 use actix_web::middleware::session::{self, RequestSession};
-use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
-use std::path::Path;
 use std::process::exit;
 
 fn index(req: &HttpRequest) -> Result<fs::NamedFile> {
@@ -61,47 +59,12 @@ fn main() {
         .shutdown_timeout(0);
 
     let http_address = "0.0.0.0:8080";
-    let https_address = "0.0.0.0:8443";
 
-    if Path::new("/ssl").exists() {
-        println!("Starting https server on {}", https_address);
-
-        let mut builder = SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
-        builder
-            .set_private_key_file("/ssl/live/stovoy.tech/privkey.pem", SslFiletype::PEM)
-            .unwrap();
-        builder.set_certificate_chain_file("/ssl/live/stovoy.tech/fullchain.pem")
-               .unwrap();
-
-        app_server
-            .bind_ssl(https_address, builder)
-            .expect(format!("Can not bind {}", https_address).as_str())
-            .start();
-
-        println!("Starting http server on {} for https redirection", http_address);
-        server::new(
-            || App::new()
-                .default_resource(|r| {
-                    // Redirect to https.
-                    r.method(Method::GET).f(|req| {
-                        HttpResponse::Found()
-                            .header(header::LOCATION,
-                                    format!("https://{}{}",
-                                            req.path(),
-                                            req.connection_info().host()))
-                            .finish()
-                    });
-                }))
-            .bind(http_address)
-            .expect(format!("Can not bind {}", http_address).as_str())
-            .start();
-    } else {
-        println!("Starting http server on {}", http_address);
-        app_server
-            .bind(http_address)
-            .expect(format!("Can not bind {}", http_address).as_str())
-            .start();
-    }
+    println!("Starting http server on {}", http_address);
+    app_server
+        .bind(http_address)
+        .expect(format!("Can not bind {}", http_address).as_str())
+        .start();
 
     sys.run();
 }

@@ -53,6 +53,7 @@ impl Renderer {
 struct SnakeGame {
     head: (u32, u32),
     board: [[u32; 5]; 5],
+    direction: Direction,
 }
 
 enum Direction {
@@ -66,7 +67,8 @@ impl SnakeGame {
     pub fn new() -> SnakeGame {
         SnakeGame {
             head: (0, 0),
-            board: [[0u32; 5]; 5]
+            board: [[0u32; 5]; 5],
+            direction: Direction::Right,
         }
     }
 
@@ -78,18 +80,22 @@ impl SnakeGame {
 
     fn key_pressed(&mut self, event: KeyDownEvent) {
         match event.key().as_ref() {
-            "w" | "ArrowUp" => self.move_snake(Direction::Up),
-            "a" | "ArrowLeft" => self.move_snake(Direction::Left),
-            "s" | "ArrowDown" => self.move_snake(Direction::Down),
-            "d" | "ArrowRight" => self.move_snake(Direction::Right),
+            "w" | "ArrowUp" => self.direction = Direction::Up,
+            "a" | "ArrowLeft" => self.direction = Direction::Left,
+            "s" | "ArrowDown" => self.direction = Direction::Down,
+            "d" | "ArrowRight" => self.direction = Direction::Right,
             _ => return,
         }
 
         event.prevent_default();
     }
 
-    fn move_snake(&mut self, direction: Direction) {
-        match direction {
+    fn tick(&mut self) {
+        self.move_snake();
+    }
+
+    fn move_snake(&mut self) {
+        match self.direction {
             Direction::Up => self.head.1 -= 1,
             Direction::Left => self.head.0 -= 1,
             Direction::Down => self.head.1 += 1,

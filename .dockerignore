@@ -1,5 +1,5 @@
 *
 !static/dist
 !target/stovoy-tech
-!entrypoint.sh
-!nginx.conf
+!resources/entrypoint.sh
+!resources/nginx.conf

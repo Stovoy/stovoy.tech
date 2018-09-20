@@ -12,6 +12,7 @@
         -c "cd /app && cargo build"
 
     mv target/debug/stovoy-tech target/stovoy-tech
+    \cp -f resources/nginx-plain.conf resources/nginx.conf
 ) &
 
 (cd static && yarn build) &
