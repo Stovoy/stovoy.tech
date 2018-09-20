@@ -1,1 +1,0 @@
-{"version":3,"sources":["0","index.js"],"names":["module","exports","package","name","version","authors","edition","dependencies","stdweb"],"mappings":";AAAAA,OAAOC,QAAU,CAAEC,QAAS,CAAEC,KAAM,qBAAsBC,QAAS,QAASC,QAAS,CAAC,8CAA+CC,QAAS,QAAUC,aAAc,CAAEC,OAAQ;;ACAhL,aAAA,QAAA","file":"src.b00ba475.map","sourceRoot":"../src","sourcesContent":[null,"import '../Cargo.toml';\n"]}
