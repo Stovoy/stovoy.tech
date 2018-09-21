@@ -4,31 +4,15 @@ extern crate ctrlc;
 extern crate futures;
 
 use actix_web::{
-    App, fs, HttpRequest, HttpResponse, middleware, pred,
+    App, HttpRequest, HttpResponse, middleware, pred,
     Result, server
 };
 use actix_web::http::{Method, StatusCode};
-use actix_web::middleware::session::{self, RequestSession};
+use actix_web::middleware::session::{self};
 use std::process::exit;
 
-fn index(req: &HttpRequest) -> Result<fs::NamedFile> {
-    let mut counter = 1;
-    if let Some(count) = req.session().get::<i32>("counter")? {
-        counter = count + 1;
-        req.session().set("counter", counter)?;
-    } else {
-        req.session().set("counter", counter)?;
-    }
-
-    Ok(fs::NamedFile::open("static/index.html")?)
-}
-
-fn favicon(_: &HttpRequest) -> Result<fs::NamedFile> {
-    Ok(fs::NamedFile::open("static/favicon.ico")?)
-}
-
-fn error_404(_: &HttpRequest) -> Result<fs::NamedFile> {
-    Ok(fs::NamedFile::open("static/404.html")?.set_status_code(StatusCode::NOT_FOUND))
+fn error_404(_: &HttpRequest) -> Result<HttpResponse> {
+    Ok(HttpResponse::new(StatusCode::NOT_FOUND))
 }
 
 fn main() {
@@ -45,9 +29,6 @@ fn main() {
             .middleware(session::SessionStorage::new(
                 session::CookieSessionBackend::signed(&[0; 32]).secure(false)
             ))
-            .resource("/", |r| r.f(index))
-            .resource("/favicon", |r| r.f(favicon))
-            .handler("/static", fs::StaticFiles::new("static").unwrap())
             .default_resource(|r| {
                 // Default to 404 for GET request.
                 r.method(Method::GET).f(error_404);
