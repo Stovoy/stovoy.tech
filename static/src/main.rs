@@ -74,11 +74,23 @@ impl Renderer {
     }
 }
 
+#[derive(PartialEq, Clone)]
 enum Direction {
     Up,
     Left,
     Down,
     Right,
+}
+
+impl Direction {
+    fn reverse(&self) -> Direction {
+        match self {
+            Direction::Up => Direction::Down,
+            Direction::Left => Direction::Right,
+            Direction::Right => Direction::Left,
+            Direction::Down => Direction::Up,
+        }
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -92,6 +104,7 @@ struct SnakeGame {
     tick_interval: u32,
     board: [[Entity; 10]; 10],
     snake_direction: Direction,
+    new_snake_direction: Direction,
     snake_order: Vec<(usize, usize)>,
     food_count: i32,
     max_food: i32,
@@ -103,6 +116,7 @@ impl SnakeGame {
             tick_interval: 250,
             board: [[Entity::None; 10]; 10],
             snake_direction: Direction::Right,
+            new_snake_direction: Direction::Right,
             snake_order: Vec::new(),
             food_count: 0,
             max_food: 10,
@@ -130,12 +144,17 @@ impl SnakeGame {
     }
 
     fn key_pressed(&mut self, event: KeyDownEvent) {
-        match event.key().as_ref() {
-            "w" | "ArrowUp" => self.snake_direction = Direction::Up,
-            "a" | "ArrowLeft" => self.snake_direction = Direction::Left,
-            "s" | "ArrowDown" => self.snake_direction = Direction::Down,
-            "d" | "ArrowRight" => self.snake_direction = Direction::Right,
+        let new_direction = match event.key().as_ref() {
+            "w" | "ArrowUp" => Direction::Up,
+            "a" | "ArrowLeft" => Direction::Left,
+            "s" | "ArrowDown" => Direction::Down,
+            "d" | "ArrowRight" => Direction::Right,
             _ => return,
+        };
+
+        if (self.snake_order.len() == 1 ||
+                new_direction != self.snake_direction.reverse()) {
+            self.new_snake_direction = new_direction;
         }
 
         event.prevent_default();
@@ -145,6 +164,7 @@ impl SnakeGame {
         if self.food_count < self.max_food {
             self.generate_food();
         }
+        self.snake_direction = self.new_snake_direction.clone();
         self.move_snake();
 
         // Go faster as time goes on.
@@ -250,6 +270,7 @@ impl SnakeGame {
 
         self.tick_interval = 250;
         self.snake_direction = Direction::Right;
+        self.new_snake_direction = Direction::Right;
         self.snake_order.clear();
         self.prepend_snake_body((0, 0));
         self.food_count = 0;
