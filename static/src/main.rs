@@ -3,6 +3,7 @@
 #[macro_use]
 extern crate stdweb;
 
+use rand::prelude::*;
 use std::cell::RefCell;
 use std::rc::Rc;
 use stdweb::traits::*;
@@ -15,20 +16,31 @@ use stdweb::web::{
 };
 use stdweb::web::event::KeyDownEvent;
 use stdweb::web::set_timeout;
+use std::cmp::{min, max};
 
 struct Renderer {
     color: Color,
+    color_scalars: (i32, i32, i32),
     pub canvas: Option<Element>,
     pub context: Option<Value>,
 }
 
 struct Color {
-    r: u8,
-    g: u8,
-    b: u8,
+    r: i32,
+    g: i32,
+    b: i32,
 }
 
 impl Renderer {
+    pub fn new() -> Renderer {
+        Renderer { 
+            color: Color { r: 0, g: 0, b: 0 }, 
+            color_scalars: (0, 0, 0),
+            canvas: None,
+            context: None 
+        }
+    }
+
     fn initialize(&mut self) {
         let canvas: Element = document().query_selector("#canvas").unwrap().unwrap();
         let context = js! {
@@ -40,20 +52,26 @@ impl Renderer {
     }
 
     pub fn update_color(&mut self) {
-        self.color.r += 1;
-        self.color.g += 2;
-        self.color.b += 3;
+        let mut rng = thread_rng();
+
+        if rng.gen_range(0, 20) == 0 {
+            self.color_scalars.0 = rng.gen_range(-5, 5);
+            self.color_scalars.1 = rng.gen_range(-5, 5);
+            self.color_scalars.2 = rng.gen_range(-5, 5);
+        }
+
+        self.color.r += self.color_scalars.0;
+        self.color.g += self.color_scalars.1;
+        self.color.b += self.color_scalars.2;
+
+        self.color.r = max(min(self.color.r, 200), 0);
+        self.color.g = max(min(self.color.g, 200), 0);
+        self.color.b = max(min(self.color.b, 200), 0);
     }
 
     pub fn get_color(&self) -> String {
         format!("rgb({}, {}, {})", self.color.r, self.color.g, self.color.b).to_owned()
     }
-}
-
-struct SnakeGame {
-    head: (i32, i32),
-    board: [[i32; 5]; 5],
-    direction: Direction,
 }
 
 enum Direction {
@@ -63,13 +81,46 @@ enum Direction {
     Right,
 }
 
+#[derive(Copy, Clone)]
+enum Entity {
+    SnakeBody,
+    Food,
+    None,
+}
+
+struct SnakeGame {
+    tick_interval: u32,
+    board: [[Entity; 10]; 10],
+    snake_direction: Direction,
+    snake_order: Vec<(usize, usize)>,
+    food_count: i32,
+    max_food: i32,
+}
+
 impl SnakeGame {
     pub fn new() -> SnakeGame {
-        SnakeGame {
-            head: (0, 0),
-            board: [[0i32; 5]; 5],
-            direction: Direction::Right,
-        }
+        let mut snake_game = SnakeGame {
+            tick_interval: 250,
+            board: [[Entity::None; 10]; 10],
+            snake_direction: Direction::Right,
+            snake_order: Vec::new(),
+            food_count: 0,
+            max_food: 10,
+        };
+
+        snake_game.prepend_snake_body((0, 0));
+
+        snake_game
+    }
+
+    fn prepend_snake_body(&mut self, point: (usize, usize)) {
+        self.board[point.0][point.1] = Entity::SnakeBody;
+        self.snake_order.insert(0, point);
+    }
+
+    fn pop_snake_body(&mut self) {
+        let point = self.snake_order.pop().unwrap();
+        self.board[point.0][point.1] = Entity::None;
     }
 
     fn step(&mut self, timestamp: f64, renderer: &mut Renderer) {
@@ -80,10 +131,10 @@ impl SnakeGame {
 
     fn key_pressed(&mut self, event: KeyDownEvent) {
         match event.key().as_ref() {
-            "w" | "ArrowUp" => self.direction = Direction::Up,
-            "a" | "ArrowLeft" => self.direction = Direction::Left,
-            "s" | "ArrowDown" => self.direction = Direction::Down,
-            "d" | "ArrowRight" => self.direction = Direction::Right,
+            "w" | "ArrowUp" => self.snake_direction = Direction::Up,
+            "a" | "ArrowLeft" => self.snake_direction = Direction::Left,
+            "s" | "ArrowDown" => self.snake_direction = Direction::Down,
+            "d" | "ArrowRight" => self.snake_direction = Direction::Right,
             _ => return,
         }
 
@@ -91,28 +142,117 @@ impl SnakeGame {
     }
 
     fn tick(&mut self) {
+        if self.food_count < self.max_food {
+            self.generate_food();
+        }
         self.move_snake();
+
+        // Go faster as time goes on.
+        self.tick_interval -= 1;
+        self.tick_interval = max(self.tick_interval, 100);
+    }
+
+    fn generate_food(&mut self) {
+        let mut possible_food_points = Vec::new();
+
+        for x in 0..self.board.len() {
+            for y in 0..self.board[0].len() {
+                match self.board[x][y] {
+                    Entity::None => {
+                        possible_food_points.push((x, y));
+                    },
+                    _ => {},
+                }
+            }
+        }
+
+        let mut rng = thread_rng();
+        while self.food_count < self.max_food {
+            if possible_food_points.len() == 0 {
+                break;
+            }
+            if rng.gen_range(0, 4) != 0 {
+                break;
+            }
+
+            let index = rng.gen_range(0, possible_food_points.len());
+            let food_spawn_point = possible_food_points.remove(index);
+            self.board[food_spawn_point.0][food_spawn_point.1] = Entity::Food;
+            self.food_count += 1;
+        }
     }
 
     fn move_snake(&mut self) {
-        match self.direction {
-            Direction::Up => self.head.1 -= 1,
-            Direction::Left => self.head.0 -= 1,
-            Direction::Down => self.head.1 += 1,
-            Direction::Right => self.head.0 += 1,
+        let mut head_point = self.snake_order[0];
+
+        match self.snake_direction {
+            Direction::Up => {
+                if head_point.1 != 0 {
+                    head_point.1 -= 1;
+                } else {
+                    self.die();
+                    return;
+                }
+            },
+            Direction::Left => {
+                if head_point.0 != 0 {
+                    head_point.0 -= 1;
+                } else {
+                    self.die();
+                    return;
+                }
+            },
+            Direction::Down => {
+                if head_point.1 != self.board[0].len() - 1 {
+                    head_point.1 += 1;
+                } else {
+                    self.die();
+                    return;
+                }
+            },
+            Direction::Right => {
+                if head_point.0 != self.board.len() - 1 {
+                    head_point.0 += 1;
+                } else {
+                    self.die();
+                    return;
+                }
+            }
         }
 
-        if self.head.0 < 0 {
-            self.head.0 = 0;
-        } else if self.head.0 > 4 {
-            self.head.0 = 4;
+        let grow = match self.board[head_point.0][head_point.1] {
+            Entity::SnakeBody => {
+                self.die();
+                return;
+            },
+            Entity::Food => true,
+            Entity::None => false,
+        };
+
+        self.prepend_snake_body(head_point);
+        if !grow {
+            self.pop_snake_body();
+        } else {
+            self.food_count -= 1;
+        }
+    }
+
+    fn die(&mut self) {
+        self.reset();
+    }
+
+    fn reset(&mut self) {
+        for x in 0..self.board.len() {
+            for y in 0..self.board[0].len() {
+                self.board[x][y] = Entity::None;
+            }
         }
 
-        if self.head.1 < 0 {
-            self.head.1 = 0;
-        } else if self.head.1 > 4 {
-            self.head.1 = 4;
-        }
+        self.tick_interval = 250;
+        self.snake_direction = Direction::Right;
+        self.snake_order.clear();
+        self.prepend_snake_body((0, 0));
+        self.food_count = 0;
     }
 
     fn draw_on_canvas(&self, renderer: &Renderer) {
@@ -123,31 +263,55 @@ impl SnakeGame {
             @{&renderer.context}.clearRect(0, 0, @{width}, @{height});
         }
 
-        let size = 100;
+        let size = (width / self.board.len() as f64) as i32;
 
         let color = renderer.get_color();
 
-        for x in 0..5 {
-            for y in 0..5 {
-                js! {
-                    @{&renderer.context}.beginPath();
-                    @{&renderer.context}.rect(@{x * size}, @{y * size}, @{size}, @{size});
-                    @{&renderer.context}.lineWidth = 2;
-                    @{&renderer.context}.strokeStyle = @{&color};
-                    @{&renderer.context}.stroke();
-                };
-            }
-        }
+        let snake_padding = size / 4;
+        let snake_size = size - snake_padding;
 
-        let snake_head_padding = 10;
-        let snake_head_size = size - snake_head_padding;
+        let food_padding = size / 2;
+        let food_size = size - food_padding;
+
+        // Draw border.
         js! {
             @{&renderer.context}.beginPath();
-            @{&renderer.context}.fillStyle = @{&color};
-            @{&renderer.context}.fillRect(
-                @{self.head.0 * size + snake_head_padding / 2}, @{self.head.1 * size + snake_head_padding / 2}, 
-                @{snake_head_size}, @{snake_head_size});
+            @{&renderer.context}.strokeStyle = "darkred";
+            @{&renderer.context}.strokeRect(
+                0, 0,
+                @{width}, @{height});
         };
+
+        for x in 0..self.board.len() {
+            for y in 0..self.board[0].len() {
+                let entity = self.board[x][y];
+
+                let x = x as i32;
+                let y = y as i32;
+
+                match entity {
+                    Entity::SnakeBody => {
+                        js! {
+                            @{&renderer.context}.beginPath();
+                            @{&renderer.context}.fillStyle = @{&color};
+                            @{&renderer.context}.fillRect(
+                                @{x * size + snake_padding / 2}, @{y * size + snake_padding / 2}, 
+                                @{snake_size}, @{snake_size});
+                        };
+                    },
+                    Entity::Food => {
+                        js! {
+                            @{&renderer.context}.beginPath();
+                            @{&renderer.context}.fillStyle = "red";
+                            @{&renderer.context}.fillRect(
+                                @{x * size + food_padding / 2}, @{y * size + food_padding / 2},
+                                @{food_size}, @{food_size});
+                        };
+                    },
+                    Entity::None => {},
+                }
+            }
+        }
     }
 }
 
@@ -157,15 +321,17 @@ fn animate(ts: f64, snake_game: Rc<RefCell<SnakeGame>>, mut renderer: Renderer) 
 }
 
 fn tick(snake_game: Rc<RefCell<SnakeGame>>) {
-    snake_game.borrow_mut().tick();
-    set_timeout(move || tick(snake_game), 250);
+    let tick_interval = {
+        let mut snake_game_borrowed = snake_game.borrow_mut();
+        snake_game_borrowed.tick();
+
+        snake_game_borrowed.tick_interval
+    };
+    set_timeout(|| tick(snake_game), tick_interval);
 }
 
 fn main() {
     stdweb::initialize();
-
-    let mut renderer = Renderer { color: Color { r: 0, g: 0, b: 0 }, canvas: None, context: None };
-    renderer.initialize();
 
     let snake_game = Rc::new(RefCell::new(SnakeGame::new()));
     {
@@ -174,13 +340,16 @@ fn main() {
     }
 
     {
+        let mut renderer = Renderer::new();
+        renderer.initialize();
         let snake_game = snake_game.clone();
         window().request_animation_frame(|ts: f64| animate(ts, snake_game, renderer));
     }
 
     {
         let snake_game = snake_game.clone();
-        set_timeout(move || tick(snake_game), 250);
+        let tick_interval = snake_game.borrow().tick_interval;
+        set_timeout(|| tick(snake_game), tick_interval);
     }
 
     stdweb::event_loop();

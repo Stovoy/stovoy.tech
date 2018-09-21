@@ -5,4 +5,5 @@ authors = ["Steve Mostovoy <stevemostovoysm@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+rand = { version = "*", features = ["stdweb"] }
 stdweb = "*"
