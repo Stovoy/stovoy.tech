@@ -5,18 +5,14 @@ extern crate stdweb;
 
 use rand::prelude::*;
 use std::cell::RefCell;
+use std::cmp::{max, min};
 use std::rc::Rc;
 use stdweb::traits::*;
-use stdweb::Value;
 use stdweb::unstable::TryInto;
-use stdweb::web::{
-    document,
-    Element,
-    window,
-};
 use stdweb::web::event::KeyDownEvent;
 use stdweb::web::set_timeout;
-use std::cmp::{min, max};
+use stdweb::web::{document, window, Element};
+use stdweb::Value;
 
 struct Renderer {
     color: Color,
@@ -33,11 +29,11 @@ struct Color {
 
 impl Renderer {
     pub fn new() -> Renderer {
-        Renderer { 
-            color: Color { r: 0, g: 0, b: 0 }, 
+        Renderer {
+            color: Color { r: 0, g: 0, b: 0 },
             color_scalars: (0, 0, 0),
             canvas: None,
-            context: None 
+            context: None,
         }
     }
 
@@ -69,8 +65,20 @@ impl Renderer {
         self.color.b = max(min(self.color.b, 200), 0);
     }
 
-    pub fn get_color(&self) -> String {
-        format!("rgb({}, {}, {})", self.color.r, self.color.g, self.color.b).to_owned()
+    pub fn get_color(&self, invert: bool) -> String {
+        let (r, g, b) = if !invert {
+            (self.color.r, self.color.g, self.color.b)
+        } else {
+            (
+                200 - self.color.r,
+                200 - self.color.g,
+                200 - self.color.b,
+            )
+        };
+
+        js! { console.log(@{r}, @{g}, @{b}) };
+
+        format!("rgb({}, {}, {})", r, g, b).to_owned()
     }
 }
 
@@ -108,6 +116,7 @@ struct SnakeGame {
     snake_order: Vec<(usize, usize)>,
     food_count: i32,
     max_food: i32,
+    recently_grown_timer: i32,
 }
 
 impl SnakeGame {
@@ -120,6 +129,7 @@ impl SnakeGame {
             snake_order: Vec::new(),
             food_count: 0,
             max_food: 10,
+            recently_grown_timer: 0,
         };
 
         snake_game.prepend_snake_body((0, 0));
@@ -152,8 +162,7 @@ impl SnakeGame {
             _ => return,
         };
 
-        if (self.snake_order.len() == 1 ||
-                new_direction != self.snake_direction.reverse()) {
+        if (self.snake_order.len() == 1 || new_direction != self.snake_direction.reverse()) {
             self.new_snake_direction = new_direction;
         }
 
@@ -164,6 +173,9 @@ impl SnakeGame {
         if self.food_count < self.max_food {
             self.generate_food();
         }
+
+        self.recently_grown_timer = max(self.recently_grown_timer - 1, 0);
+
         self.snake_direction = self.new_snake_direction.clone();
         self.move_snake();
 
@@ -180,8 +192,8 @@ impl SnakeGame {
                 match self.board[x][y] {
                     Entity::None => {
                         possible_food_points.push((x, y));
-                    },
-                    _ => {},
+                    }
+                    _ => {}
                 }
             }
         }
@@ -213,7 +225,7 @@ impl SnakeGame {
                     self.die();
                     return;
                 }
-            },
+            }
             Direction::Left => {
                 if head_point.0 != 0 {
                     head_point.0 -= 1;
@@ -221,7 +233,7 @@ impl SnakeGame {
                     self.die();
                     return;
                 }
-            },
+            }
             Direction::Down => {
                 if head_point.1 != self.board[0].len() - 1 {
                     head_point.1 += 1;
@@ -229,7 +241,7 @@ impl SnakeGame {
                     self.die();
                     return;
                 }
-            },
+            }
             Direction::Right => {
                 if head_point.0 != self.board.len() - 1 {
                     head_point.0 += 1;
@@ -244,7 +256,7 @@ impl SnakeGame {
             Entity::SnakeBody => {
                 self.die();
                 return;
-            },
+            }
             Entity::Food => true,
             Entity::None => false,
         };
@@ -254,6 +266,7 @@ impl SnakeGame {
             self.pop_snake_body();
         } else {
             self.food_count -= 1;
+            self.recently_grown_timer = 2;
         }
     }
 
@@ -274,11 +287,14 @@ impl SnakeGame {
         self.snake_order.clear();
         self.prepend_snake_body((0, 0));
         self.food_count = 0;
+        self.recently_grown_timer = 0;
     }
 
     fn draw_on_canvas(&self, renderer: &Renderer) {
         let width: f64 = js! { return @{&renderer.canvas}.width }.try_into().unwrap();
-        let height: f64 = js! { return @{&renderer.canvas}.height }.try_into().unwrap();
+        let height: f64 = js! { return @{&renderer.canvas}.height }
+            .try_into()
+            .unwrap();
 
         js! {
             @{&renderer.context}.clearRect(0, 0, @{width}, @{height});
@@ -286,7 +302,8 @@ impl SnakeGame {
 
         let size = (width / self.board.len() as f64) as i32;
 
-        let color = renderer.get_color();
+        js! { console.log(@{self.recently_grown_timer}) };
+        let color = renderer.get_color(self.recently_grown_timer > 0);
 
         let snake_padding = size / 4;
         let snake_size = size - snake_padding;
@@ -316,10 +333,10 @@ impl SnakeGame {
                             @{&renderer.context}.beginPath();
                             @{&renderer.context}.fillStyle = @{&color};
                             @{&renderer.context}.fillRect(
-                                @{x * size + snake_padding / 2}, @{y * size + snake_padding / 2}, 
+                                @{x * size + snake_padding / 2}, @{y * size + snake_padding / 2},
                                 @{snake_size}, @{snake_size});
                         };
-                    },
+                    }
                     Entity::Food => {
                         js! {
                             @{&renderer.context}.beginPath();
@@ -328,8 +345,8 @@ impl SnakeGame {
                                 @{x * size + food_padding / 2}, @{y * size + food_padding / 2},
                                 @{food_size}, @{food_size});
                         };
-                    },
-                    Entity::None => {},
+                    }
+                    Entity::None => {}
                 }
             }
         }
