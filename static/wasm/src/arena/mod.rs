@@ -5,19 +5,33 @@ use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent,
 use stdweb::web::set_timeout;
 use stdweb::web::{document, window, Element, WebSocket};
 use stdweb::unstable::TryInto;
+use stdweb::Value;
 
 struct ArenaGame {
     tick_interval: u32,
     websocket: Rc<RefCell<WebSocket>>,
     opened: bool,
+    canvas: Element,
+    context: Value,
 }
 
 impl ArenaGame {
     fn new(websocket: Rc<RefCell<WebSocket>>) -> ArenaGame {
+        let canvas: Element = document().query_selector("#canvas").unwrap().unwrap();
+        js! {
+            @{&canvas}.hidden = false;
+        }
+
+        let context = js! {
+            return @{&canvas}.getContext("2d");
+        };
+
         ArenaGame {
             tick_interval: 100,
             websocket,
             opened: false,
+            canvas,
+            context,
         }
     }
 
@@ -63,6 +77,7 @@ pub fn run() {
     let endpoint = format!("{}//{}/api/game/arena", protocol, hostname);
 
     let websocket = Rc::new(RefCell::new(WebSocket::new(endpoint.as_ref()).unwrap()));
+
     let arena_game = Rc::new(RefCell::new(ArenaGame::new(websocket.clone())));
 
     {
