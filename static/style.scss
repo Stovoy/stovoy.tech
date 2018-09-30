@@ -58,7 +58,25 @@ body {
     }
 }
 
-.game {
+.snake-game {
     text-align: center;
     margin-top: 10px;
+}
+
+#farming-game-text-box {
+    position: relative;
+    margin-top: 10px;
+    color: white;
+    background-color: black;
+    padding: 10px;
+    min-height: 200px;
+    height: 200px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}
+
+#farming-game-text-input {
+    position: absolute;
+    bottom: 10px;
+    width: 100px;
 }

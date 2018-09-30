@@ -1,41 +1,47 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 use stdweb::traits::*;
-use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent};
-use stdweb::web::set_timeout;
-use stdweb::web::{document, window, Element, WebSocket};
 use stdweb::unstable::TryInto;
-use stdweb::Value;
+use stdweb::web::event::{
+    KeyDownEvent, SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent,
+};
+use stdweb::web::set_timeout;
+use stdweb::web::{document, Element, WebSocket};
 
 struct ArenaGame {
     tick_interval: u32,
     websocket: Rc<RefCell<WebSocket>>,
     opened: bool,
-    canvas: Element,
-    context: Value,
+    game_text_box: Element,
+    text_input: Element,
 }
 
 impl ArenaGame {
     fn new(websocket: Rc<RefCell<WebSocket>>) -> ArenaGame {
-        let canvas: Element = document().query_selector("#canvas").unwrap().unwrap();
+        let game_container: Element = document().query_selector("#farming-game").unwrap().unwrap();
+        let game_text_box: Element = document()
+            .query_selector("#farming-game-text-box")
+            .unwrap()
+            .unwrap();
+        let text_input: Element = document()
+            .query_selector("#farming-game-text-input")
+            .unwrap()
+            .unwrap();
+
         js! {
-            @{&canvas}.hidden = false;
+            @{&game_container}.hidden = false;
         }
 
-        let context = js! {
-            return @{&canvas}.getContext("2d");
-        };
-
         ArenaGame {
-            tick_interval: 100,
+            tick_interval: 1000 / 30,
             websocket,
             opened: false,
-            canvas,
-            context,
+            game_text_box,
+            text_input,
         }
     }
 
-    fn socket_open(&mut self, event: SocketOpenEvent) {
+    fn socket_open(&mut self, _event: SocketOpenEvent) {
         self.opened = true;
     }
 
@@ -43,19 +49,39 @@ impl ArenaGame {
         js! { console.log(@{event}) };
     }
 
-    fn socket_close(&self, event: SocketCloseEvent) {
-        js! { console.log(@{event}) };
+    fn socket_close(&mut self, _event: SocketCloseEvent) {
+        self.opened = false;
     }
 
-    fn socket_message(&self, event: SocketMessageEvent) {
-        js! { console.log(@{&event.data().into_text().unwrap()}) };
+    fn socket_message(&mut self, event: SocketMessageEvent) {
+        let element = document().create_element("div").unwrap();
+        element.set_text_content(event.data().into_text().unwrap().as_ref());
+        if let Some(child) = self.game_text_box.first_child() {
+            self.game_text_box.insert_before(&element, &child);
+        } else {
+            self.game_text_box.append_child(&element);
+        }
+    }
+
+    fn key_pressed(&mut self, event: KeyDownEvent) {
+        if event.key() != "Enter" {
+            return;
+        }
+
+        let value: String = js! {
+            const value = @{&self.text_input}.value;
+            @{&self.text_input}.value = "";
+            return value;
+        }.try_into()
+        .unwrap();
+        self.websocket.borrow_mut().send_text(value.as_ref());
     }
 
     fn tick(&mut self) {
         if !self.opened {
             return;
         }
-        self.websocket.borrow_mut().send_text("hello world");
+        // self.websocket.borrow_mut().send_text("hello world");
     }
 }
 
@@ -91,7 +117,7 @@ pub fn run() {
         websocket
             .clone()
             .borrow_mut()
-            .add_event_listener(move |e: SocketOpenEvent| arena_game.borrow_mut().socket_open(e));
+            .add_event_listener(move |e| arena_game.borrow_mut().socket_open(e));
     }
 
     {
@@ -99,7 +125,7 @@ pub fn run() {
         websocket
             .clone()
             .borrow_mut()
-            .add_event_listener(move |e: SocketErrorEvent| arena_game.borrow_mut().socket_error(e));
+            .add_event_listener(move |e| arena_game.borrow_mut().socket_error(e));
     }
 
     {
@@ -107,7 +133,7 @@ pub fn run() {
         websocket
             .clone()
             .borrow_mut()
-            .add_event_listener(move |e: SocketCloseEvent| arena_game.borrow_mut().socket_close(e));
+            .add_event_listener(move |e| arena_game.borrow_mut().socket_close(e));
     }
 
     {
@@ -115,8 +141,16 @@ pub fn run() {
         websocket
             .clone()
             .borrow_mut()
-            .add_event_listener(move |e: SocketMessageEvent| {
-                arena_game.borrow_mut().socket_message(e)
-            });
+            .add_event_listener(move |e| arena_game.borrow_mut().socket_message(e));
+    }
+
+    {
+        let arena_game = arena_game.clone();
+
+        let text_input: Element = document()
+            .query_selector("#farming-game-text-input")
+            .unwrap()
+            .unwrap();
+        text_input.add_event_listener(move |e| arena_game.borrow_mut().key_pressed(e));
     }
 }

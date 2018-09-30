@@ -5,13 +5,13 @@ extern crate futures;
 
 mod arena;
 
-use actix_web::ws;
+use actix::Arbiter;
 use actix_web::http::{Method, StatusCode};
 use actix_web::middleware::session;
 use actix_web::{middleware, pred, server, App, HttpRequest, HttpResponse, Result};
 use std::process::exit;
 
-fn error_404(_: &HttpRequest) -> Result<HttpResponse> {
+fn error_404(_: &HttpRequest<arena::ArenaSessionState>) -> Result<HttpResponse> {
     Ok(HttpResponse::new(StatusCode::NOT_FOUND))
 }
 
@@ -23,13 +23,18 @@ fn main() {
 
     let sys = actix::System::new("stovoy.tech");
 
-    let app_server = server::new(|| {
-        App::new()
+    let server = Arbiter::start(|_| arena::chat::ChatServer::default());
+
+    let app_server = server::new(move || {
+        let state = arena::ArenaSessionState {
+            chat_addr: server.clone(),
+        };
+
+        App::with_state(state)
             .middleware(middleware::Logger::default())
             .middleware(session::SessionStorage::new(
                 session::CookieSessionBackend::signed(&[0; 32]).secure(false),
-            ))
-            .resource("/api/game/arena", |r| r.f(|req| ws::start(req, arena::ArenaWebsocket)))
+            )).resource("/api/game/arena", |r| r.route().f(arena::arena_route))
             .default_resource(|r| {
                 // Default to 404 for GET request.
                 r.method(Method::GET).f(error_404);

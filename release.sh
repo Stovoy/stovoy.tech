@@ -32,5 +32,7 @@ ssh stovoy.tech 'docker pull stovoy/stovoy.tech &&
         --publish 443:443 \
         --name stovoy.tech \
         --volume /etc/letsencrypt:/ssl \
+        --log-opt max-size=500m \
+        --log-opt max-file=5 \
         --detach \
         stovoy/stovoy.tech'
