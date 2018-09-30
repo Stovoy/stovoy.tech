@@ -3,6 +3,9 @@ extern crate actix_web;
 extern crate ctrlc;
 extern crate futures;
 
+mod arena;
+
+use actix_web::ws;
 use actix_web::http::{Method, StatusCode};
 use actix_web::middleware::session;
 use actix_web::{middleware, pred, server, App, HttpRequest, HttpResponse, Result};
@@ -25,7 +28,9 @@ fn main() {
             .middleware(middleware::Logger::default())
             .middleware(session::SessionStorage::new(
                 session::CookieSessionBackend::signed(&[0; 32]).secure(false),
-            )).default_resource(|r| {
+            ))
+            .resource("/api/game/arena", |r| r.f(|req| ws::start(req, arena::ArenaWebsocket)))
+            .default_resource(|r| {
                 // Default to 404 for GET request.
                 r.method(Method::GET).f(error_404);
 

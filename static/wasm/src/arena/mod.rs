@@ -4,6 +4,7 @@ use stdweb::traits::*;
 use stdweb::web::event::{SocketCloseEvent, SocketErrorEvent, SocketMessageEvent, SocketOpenEvent};
 use stdweb::web::set_timeout;
 use stdweb::web::{document, window, Element, WebSocket};
+use stdweb::unstable::TryInto;
 
 struct ArenaGame {
     tick_interval: u32,
@@ -55,9 +56,13 @@ fn tick(arena_game: Rc<RefCell<ArenaGame>>) {
 }
 
 pub fn run() {
-    let websocket = Rc::new(RefCell::new(
-        WebSocket::new("wss://echo.websocket.org").unwrap(),
-    ));
+    let hostname: String = js! { return window.location.hostname }.try_into().unwrap();
+    let protocol: String = js! { return window.location.protocol }.try_into().unwrap();
+
+    let protocol = protocol.replace("http", "ws");
+    let endpoint = format!("{}//{}/api/game/arena", protocol, hostname);
+
+    let websocket = Rc::new(RefCell::new(WebSocket::new(endpoint.as_ref()).unwrap()));
     let arena_game = Rc::new(RefCell::new(ArenaGame::new(websocket.clone())));
 
     {
