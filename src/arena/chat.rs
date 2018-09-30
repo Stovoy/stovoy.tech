@@ -1,4 +1,4 @@
-use actix::prelude::*;
+use ::actix::prelude::*;
 use std::collections::HashMap;
 
 #[derive(Message)]

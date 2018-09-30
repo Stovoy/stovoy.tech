@@ -9,9 +9,9 @@ docker run \
     -v $(pwd)/Cargo.lock:/app/Cargo.lock \
     --entrypoint bash \
     rustlang/rust:nightly \
-    -c "cd /app && cargo build"
+    -c "cd /app && cargo build --release"
 
-mv target/debug/stovoy-tech target/stovoy-tech
+mv target/release/stovoy-tech target/stovoy-tech
 \cp -f resources/nginx-plain.conf resources/nginx.conf
 
 mkdir -p static/dist

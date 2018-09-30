@@ -1,5 +1,5 @@
-use actix::*;
-use actix_web::*;
+use ::actix::*;
+use ::actix_web::*;
 
 pub mod chat;
 
