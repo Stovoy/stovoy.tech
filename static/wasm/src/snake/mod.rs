@@ -144,7 +144,7 @@ impl SnakeGame {
         self.board[point.0][point.1] = Entity::None;
     }
 
-    fn step(&mut self, timestamp: f64, renderer: &mut Renderer) {
+    fn step(&mut self, _timestamp: f64, renderer: &mut Renderer) {
         renderer.update_color();
 
         self.draw_on_canvas(&renderer);
