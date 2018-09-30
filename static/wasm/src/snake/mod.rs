@@ -1,8 +1,3 @@
-#![recursion_limit = "128"]
-
-#[macro_use]
-extern crate stdweb;
-
 use rand::prelude::*;
 use std::cell::RefCell;
 use std::cmp::{max, min};
@@ -39,6 +34,10 @@ impl Renderer {
 
     fn initialize(&mut self) {
         let canvas: Element = document().query_selector("#canvas").unwrap().unwrap();
+        js! {
+            @{&canvas}.hidden = false;
+        }
+
         let context = js! {
             return @{&canvas}.getContext("2d");
         };
@@ -69,11 +68,7 @@ impl Renderer {
         let (r, g, b) = if !invert {
             (self.color.r, self.color.g, self.color.b)
         } else {
-            (
-                200 - self.color.r,
-                200 - self.color.g,
-                200 - self.color.b,
-            )
+            (200 - self.color.r, 200 - self.color.g, 200 - self.color.b)
         };
 
         js! { console.log(@{r}, @{g}, @{b}) };
@@ -117,6 +112,7 @@ struct SnakeGame {
     food_count: i32,
     max_food: i32,
     recently_grown_timer: i32,
+    recently_spawned_food_timer: i32,
 }
 
 impl SnakeGame {
@@ -130,6 +126,7 @@ impl SnakeGame {
             food_count: 0,
             max_food: 10,
             recently_grown_timer: 0,
+            recently_spawned_food_timer: 0,
         };
 
         snake_game.prepend_snake_body((0, 0));
@@ -162,7 +159,7 @@ impl SnakeGame {
             _ => return,
         };
 
-        if (self.snake_order.len() == 1 || new_direction != self.snake_direction.reverse()) {
+        if self.snake_order.len() == 1 || new_direction != self.snake_direction.reverse() {
             self.new_snake_direction = new_direction;
         }
 
@@ -181,10 +178,17 @@ impl SnakeGame {
 
         // Go faster as time goes on.
         self.tick_interval -= 1;
-        self.tick_interval = max(self.tick_interval, 100);
+        self.tick_interval = max(self.tick_interval, 175);
     }
 
     fn generate_food(&mut self) {
+        if self.recently_spawned_food_timer > 0 {
+            self.recently_spawned_food_timer -= 1;
+            return;
+        } else {
+            self.recently_spawned_food_timer = 20;
+        }
+
         let mut possible_food_points = Vec::new();
 
         for x in 0..self.board.len() {
@@ -198,20 +202,15 @@ impl SnakeGame {
             }
         }
 
-        let mut rng = thread_rng();
-        while self.food_count < self.max_food {
-            if possible_food_points.len() == 0 {
-                break;
-            }
-            if rng.gen_range(0, 4) != 0 {
-                break;
-            }
-
-            let index = rng.gen_range(0, possible_food_points.len());
-            let food_spawn_point = possible_food_points.remove(index);
-            self.board[food_spawn_point.0][food_spawn_point.1] = Entity::Food;
-            self.food_count += 1;
+        if possible_food_points.len() == 0 {
+            return;
         }
+
+        let mut rng = thread_rng();
+        let index = rng.gen_range(0, possible_food_points.len());
+        let food_spawn_point = possible_food_points.remove(index);
+        self.board[food_spawn_point.0][food_spawn_point.1] = Entity::Food;
+        self.food_count += 1;
     }
 
     fn move_snake(&mut self) {
@@ -368,9 +367,7 @@ fn tick(snake_game: Rc<RefCell<SnakeGame>>) {
     set_timeout(|| tick(snake_game), tick_interval);
 }
 
-fn main() {
-    stdweb::initialize();
-
+pub fn run() {
     let snake_game = Rc::new(RefCell::new(SnakeGame::new()));
     {
         let snake_game = snake_game.clone();
@@ -389,6 +386,4 @@ fn main() {
         let tick_interval = snake_game.borrow().tick_interval;
         set_timeout(|| tick(snake_game), tick_interval);
     }
-
-    stdweb::event_loop();
 }
