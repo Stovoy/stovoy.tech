@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-
-
 start_nginx() {
     (
         echo "Launching Nginx"

@@ -14,5 +14,5 @@ docker run \
 mv target/release/stovoy-tech target/stovoy-tech
 \cp -f resources/nginx-plain.conf resources/nginx.conf
 
-mkdir -p static/dist
+( cd static && yarn run build )
 docker build -t stovoy.tech .
