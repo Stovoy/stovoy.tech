@@ -12,6 +12,6 @@
     "watch": "parcel watch index.html --public-url /static/"
   },
   "devDependencies": {
-    "node-sass": "^4.9.3"
+    "node-sass": "^4.13.1"
   }
 }
