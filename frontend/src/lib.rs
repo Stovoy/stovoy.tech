@@ -16,7 +16,7 @@ use nav::Navbar;
 // WebSocket‑based implementation is being reworked.
 #[function_component(Chat)]
 fn chat_placeholder() -> Html {
-    html! { <p>{"Chat will be available soon."}</p> }
+    html! { <p class="text-center text-lg">{"Chat will be available soon."}</p> }
 }
 mod theme;
 
@@ -51,23 +51,33 @@ fn app() -> Html {
 
     let switch = Callback::from(move |route: Route| match route {
         Route::Home => html! {
-            <div class="text-center mt-4">
-                <h1 class="text-3xl font-bold">{"Stovoy.tech reboot 🚀"}</h1>
-                <p class="mt-2 text-gray-600 dark:text-gray-300">{"Hello from Yew + Trunk!"}</p>
-            </div>
+            <section class="text-center flex flex-col items-center justify-center gap-6 py-12">
+                <h1 class="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent drop-shadow">{"Stovoy.tech"}</h1>
+                <p class="max-w-xl text-lg md:text-xl opacity-80">{"Rust‑powered playground, streaming assorted side‑projects and experiments. Have a poke around – source is only a click away."}</p>
+
+                <div class="flex gap-4 mt-6">
+                    <a href="#arena" class="px-6 py-3 rounded-full bg-primary text-white hover:bg-indigo-600 transition-colors shadow">{"Enter Arena"}</a>
+                    <a href="#snake" class="px-6 py-3 rounded-full bg-white/10 border border-primary text-primary hover:bg-primary hover:text-white transition-colors shadow">{"Play Snake"}</a>
+                </div>
+            </section>
         },
         Route::Arena => html! { <Chat /> },
-        Route::Snake => html! { <div class="text-center mt-8">{"Snake v2 coming soon…"}</div> },
+        Route::Snake => html! { <div class="text-center mt-12 text-2xl">{"🐍 Snake v2 coming soon…"}</div> },
         Route::NotFound => html! { <div class="text-center mt-8">{"404"}</div> },
     });
 
     html! {
         <BrowserRouter>
-            <Navbar />
-            <button onclick={toggle_theme} class="fixed bottom-4 right-4 bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded shadow">
-                { if *is_dark { "Light" } else { "Dark" } }
-            </button>
-            <Switch<Route> render={switch} />
+            <div class="font-sans min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 text-gray-800 dark:text-gray-100 flex flex-col">
+                <Navbar />
+                <main class="flex-grow max-w-4xl w-full mx-auto px-4 py-8">
+                    <Switch<Route> render={switch.clone()} />
+                </main>
+
+                <button onclick={toggle_theme} class="fixed bottom-5 right-5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-full shadow p-2 hover:scale-105 transition-transform">
+                    { if *is_dark { "☀️" } else { "🌙" } }
+                </button>
+            </div>
         </BrowserRouter>
     }
 }

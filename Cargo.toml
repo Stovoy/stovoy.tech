@@ -1,34 +1,16 @@
 [workspace]
 # The root acts as the backend package *and* workspace root.
 # We'll re‑add the frontend WASM crate once it is migrated to Trunk/Yew.
+# Legacy Actix backend removed – only Axum backend and frontend remain.
 members = [
-    ".",          # legacy actix backend (will be removed later)
-    "backend",     # new axum backend under migration
-    "frontend"     # new Yew frontend
+    "backend",   # Axum backend
+    "frontend"   # Yew frontend (wasm32)
 ]
 
-# Build only backend crates on default target; the frontend is compiled via Trunk (wasm32).
+# Build only backend crate on default target; frontend compiled via Trunk.
 default-members = [
-    ".",
     "backend"
 ]
-
-[package]
-name = "stovoy-tech-backend"
-version = "0.1.0"
-edition = "2021"
-authors = ["Steve Mostovoy <stevemostovoysm@gmail.com>"]
-
-[dependencies]
-actix = "0.7"
-actix-web = { version = "0.7" }
-ctrlc = { version = "3", features = ["termination"] }
-futures = "0.1"
-
-[[bin]]
-name = "stovoy-tech"
-path = "src/main.rs"
-
-# Temporary: silence the upcoming edition‑idiom warnings until we fully port.
+# Temporary: keep shared workspace edition setting.
 [workspace.package]
 edition = "2021"

@@ -10,6 +10,11 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 anyhow = "1"
 
+# Configuration
+config = { version = "0.13", default-features = false, features = ["yaml"] }
+serde = { version = "1.0", features = ["derive"] }
+tower-http = { version = "0.5", features = ["fs"] }
+
 [[bin]]
 name = "stovoy-tech-axum"
 path = "src/main.rs"
