@@ -25,8 +25,8 @@ This document captures the high‑level tasks required to modernise and super‑
 
 ### ⏳ Outstanding
 
-- [ ] Remove legacy scripts (`build.sh`, `run.sh`, `release.sh`) once the new tool‑chain lands.
-- [ ] Configure `cargo fmt`, `cargo clippy --workspace --all-targets` in CI.
+- [x] Remove legacy scripts (`build.sh`, `run.sh`, `release.sh`) once the new tool‑chain lands.
+- [x] Configure `cargo fmt`, `cargo clippy --workspace --all-targets` in CI.
 
 
 ---
