@@ -82,7 +82,7 @@ This document captures the high‑level tasks required to modernise and super‑
       - `Yew` (mature, JSX‑like)  _or_
       - `Leptos` (server‑side streaming, cool new kid).
 
-- [ ] Port Arena chat UI to chosen framework.
+- [x] Port Arena chat UI to Yew (basic implementation, echo over WS).
 - [ ] Re‑implement Snake using new renderer; maybe add adaptive difficulty + touch controls.
 - [ ] Adopt TailwindCSS or DaisyUI for quick styling; integrate with Trunk `tailwind-plugin`.
 - [x] Adopt TailwindCSS via Trunk tailwind plugin; basic setup in frontend.
