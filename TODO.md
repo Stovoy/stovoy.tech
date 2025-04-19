@@ -49,7 +49,7 @@ This document captures the high‑level tasks required to modernise and super‑
   * `/api/game/arena` → WS handler with shared state via `tokio::sync::broadcast` or `tokio::sync::RwLock<HashMap<…>>`.
   * Static file serving can be handled by Axum (see §4) or remain on Nginx – benchmark later.
 
-- [ ] Implement graceful shutdown, structured logging (`tracing`), metrics (`prometheus_client`).
+- [ ] Implement graceful shutdown and structured logging (`tracing`).
 - [ ] Configuration via `config` crate or `figment`; respect env‑vars for container overrides.
 - [ ] Provide REST/GraphQL skeleton for future apps.
 
@@ -150,8 +150,7 @@ Two options:
 ## 8. Observability 📈
 
 - [ ] Integrate `opentelemetry` + `tracing-opentelemetry`.
-- [ ] Push metrics to Prometheus; add Grafana dashboard.
-- [ ] Basic `/metrics` endpoint.
+- [ ] Integrate distributed tracing via OpenTelemetry (Grafana Tempo / Jaeger).
 
 ---
 
@@ -227,7 +226,7 @@ Goal: let visitors click a floating toolbox, then click any UI element and insta
 | **M1** – Axum MVP | Arena WS + static serving, no Nginx, Docker MS image |
 | **M2** – Front‑end revamp | Yew + Trunk, new design, Tailwind |
 | **M3** – Testing hardening | All test suites green in CI |
-| **M4** – Observability & Deploy | Prom metrics, auto deploy to prod |
+| **M4** – Observability & Deploy | Distributed tracing, auto deploy to prod |
 | **M5** – Feature sprint | Snake v2, new mini‑app, blog |
 
 Happy hacking, Stovoy!  Stream the journey and let chat check these boxes in real‑time. 🦀

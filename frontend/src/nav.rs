@@ -22,9 +22,9 @@ pub fn navbar() -> Html {
     };
 
     html! {
-        <nav class="bg-gray-200 dark:bg-gray-800 p-4 shadow">
+        <nav class="backdrop-blur bg-white/70 dark:bg-gray-950/70 border-b border-gray-200 dark:border-gray-800 px-4 py-3 sticky top-0 z-50">
             <div class="flex items-center justify-between max-w-4xl mx-auto">
-                <span class="font-semibold text-lg">{"stovoy.tech"}</span>
+                <span class="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-600">{"stovoy.tech"}</span>
 
                 <button class="md:hidden" onclick={{
                     let open = open.clone();
@@ -34,17 +34,17 @@ pub fn navbar() -> Html {
                 </button>
 
                 <div class="hidden md:flex gap-4">
-                    <button class="hover:underline" onclick={make_link_cb(Route::Home, open.clone())}>{"Home"}</button>
-                    <button class="hover:underline" onclick={make_link_cb(Route::Arena, open.clone())}>{"Arena"}</button>
-                    <button class="hover:underline" onclick={make_link_cb(Route::Snake, open.clone())}>{"Snake"}</button>
+                    <button class="transition-colors hover:text-primary" onclick={make_link_cb(Route::Home, open.clone())}>{"Home"}</button>
+                    <button class="transition-colors hover:text-primary" onclick={make_link_cb(Route::Arena, open.clone())}>{"Arena"}</button>
+                    <button class="transition-colors hover:text-primary" onclick={make_link_cb(Route::Snake, open.clone())}>{"Snake"}</button>
                 </div>
             </div>
 
             <div class={classes!("md:hidden", if *open { "block" } else { "hidden" })}>
                 <div class="px-2 pt-2 pb-4 space-y-1">
-                    <button class="block w-full text-left hover:underline" onclick={make_link_cb(Route::Home, open.clone())}>{"Home"}</button>
-                    <button class="block w-full text-left hover:underline" onclick={make_link_cb(Route::Arena, open.clone())}>{"Arena"}</button>
-                    <button class="block w-full text-left hover:underline" onclick={make_link_cb(Route::Snake, open.clone())}>{"Snake"}</button>
+                    <button class="block w-full text-left py-1 px-2 rounded hover:bg-primary/10" onclick={make_link_cb(Route::Home, open.clone())}>{"Home"}</button>
+                    <button class="block w-full text-left py-1 px-2 rounded hover:bg-primary/10" onclick={make_link_cb(Route::Arena, open.clone())}>{"Arena"}</button>
+                    <button class="block w-full text-left py-1 px-2 rounded hover:bg-primary/10" onclick={make_link_cb(Route::Snake, open.clone())}>{"Snake"}</button>
                 </div>
             </div>
         </nav>

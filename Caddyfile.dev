@@ -1,0 +1,17 @@
+{
+    auto_https off
+    # Disable telemetry, simpler logs
+    admin off
+}
+
+# Local development – no TLS
+:80 {
+    encode zstd gzip
+
+    # API & WebSocket traffic → backend (Axum)
+    @api path /api/* /healthz
+    reverse_proxy @api backend:8080
+
+    # Everything else → Yew dev server (Trunk serve)
+    reverse_proxy frontend:8081
+}

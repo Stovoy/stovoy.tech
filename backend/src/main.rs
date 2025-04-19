@@ -11,6 +11,50 @@ use axum::{
 };
 use tokio::signal;
 use tracing::info;
+use axum::routing::get_service;
+use tower_http::services::{ServeDir, ServeFile};
+
+// --- Configuration --------------------------------------------------------
+
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct Settings {
+    /// TCP bind address, e.g. "0.0.0.0:8080".
+    #[serde(default = "default_bind")]
+    bind: String,
+
+    /// Directory to serve static assets from.
+    #[serde(default = "default_static_dir")]
+    static_dir: String,
+}
+
+fn default_bind() -> String {
+    "0.0.0.0:8080".to_owned()
+}
+
+fn default_static_dir() -> String {
+    "dist".to_owned()
+}
+
+impl Settings {
+    fn load() -> anyhow::Result<Self> {
+        // Priority:
+        //   1. Environment variables (PREFIX_*)
+        //   2. settings.{yaml,toml,env}
+        //   3. Defaults from struct
+
+        let mut cfg = config::Config::builder();
+
+        // Optional: a `settings.yaml` near the binary / CWD.
+        cfg = cfg
+            .add_source(config::File::with_name("settings").required(false))
+            // Environment variables in the form `APP_BIND=0.0.0.0:9000`
+            .add_source(config::Environment::with_prefix("APP").separator("__"));
+
+        Ok(cfg.build()?.try_deserialize()?)
+    }
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -19,20 +63,29 @@ async fn main() -> anyhow::Result<()> {
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .init();
 
+    // Load configuration (env, file, defaults).
+    let settings = Settings::load()?;
+
     // Shared broadcast channel for arena chat.
     // Capacity is small; if lagging clients cannot keep up they will drop messages.
     let (tx, _rx) = tokio::sync::broadcast::channel::<String>(128);
 
     // Build application routes and inject shared state.
+    // Static files service with simple internal error handler.
+    let static_service = get_service(ServeDir::new(&settings.static_dir));
+
+    let index_service = get_service(ServeFile::new(format!("{}/index.html", &settings.static_dir)));
+
     let app = Router::new()
         .route("/healthz", get(healthz))
         .route("/api/game/arena", get(arena_ws_handler))
+        // Static assets under /assets/.. if needed, but also serve at root.
+        .nest_service("/", static_service)
+        .route_service("/", index_service)
         .layer(Extension(tx));
 
-    // Bind address from $BIND or default.
-    let addr: SocketAddr = std::env::var("BIND")
-        .unwrap_or_else(|_| "0.0.0.0:8080".into())
-        .parse()?;
+    // Use configured bind address.
+    let addr: SocketAddr = settings.bind.parse()?;
 
     info!("listening on http://{}", addr);
 
