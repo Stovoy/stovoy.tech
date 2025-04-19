@@ -1,7 +1,13 @@
 # Trunk configuration (minimal for now)
 
+
 [build]
-target = "wasm32-unknown-unknown"
+# The build target is the HTML entry‑point for the Yew application. Trunk will
+# parse this file, discover the `<link data-trunk ...>` tags and manage the
+# whole WebAssembly build pipeline automatically.
+target = "frontend/index.html"
+
+# Output directory (kept as‑is).
 dist = "dist"
 
 [serve]

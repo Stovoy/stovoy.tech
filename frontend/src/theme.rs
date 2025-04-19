@@ -21,7 +21,7 @@ pub fn current_pref() -> bool {
     // Fallback to system preference
     window()
         .and_then(|w| w.match_media("(prefers-color-scheme: dark)").ok().flatten())
-        .and_then(|mq| mq.matches())
+        .map(|mq| mq.matches())
         .unwrap_or(false)
 }
 
@@ -34,7 +34,11 @@ pub fn set_pref(dark: bool) {
 
 pub fn apply_class(dark: bool) {
     if let Some(doc) = window().and_then(|w| w.document()) {
-        let elem = doc.document_element().unwrap().dyn_into::<HtmlElement>().unwrap();
+        let elem = doc
+            .document_element()
+            .unwrap()
+            .dyn_into::<HtmlElement>()
+            .unwrap();
         if dark {
             let _ = elem.class_list().add_1("dark");
         } else {

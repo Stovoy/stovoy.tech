@@ -10,13 +10,23 @@ WORKDIR /app
 # Install build dependencies (musl).
 RUN apk add --no-cache musl-dev pkgconfig build-base git
 
-# Cache dependencies
+# ----------------------------------------------------------------------
+# Dependency caching
+# ----------------------------------------------------------------------
+# Copy the workspace manifests first – this lets Docker cache the expensive
+# dependency compilation layer and reuse it unless Cargo.toml/Cargo.lock change.
 COPY Cargo.toml Cargo.lock ./
 COPY backend/Cargo.toml ./backend/Cargo.toml
-RUN mkdir -p src/backend && echo "fn main(){}" > src/backend/main.rs && \
-    cargo build --release -p stovoy-tech-backend-axum
+COPY frontend/Cargo.toml ./frontend/Cargo.toml
 
-# Copy real source and build
+# Pre‑fetch and build dependencies only (no user code). `cargo fetch` was not
+# sufficient in older Cargo versions to build proc‑macros, so we do a dummy
+# build which is cancelled as soon as dependencies are compiled.
+RUN cargo build --release --package stovoy-tech-backend-axum || true
+
+# ----------------------------------------------------------------------
+# Copy the actual source and build the real binary
+# ----------------------------------------------------------------------
 COPY . .
 RUN cargo build --release -p stovoy-tech-backend-axum
 

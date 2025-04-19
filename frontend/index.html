@@ -3,8 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <title>Stovoy.tech</title>
-    <!-- Tailwind via Trunk plugin -->
-    <link data-trunk rel="tailwind" href="style.css" />
+    <!-- The built‑in TailwindCSS pipeline has changed across Trunk versions.
+         Leave plain stylesheet for now to unblock the dev server. -->
+    <link rel="stylesheet" href="style.css" />
 
     <!-- Instruct Trunk to build the Rust WASM -->
     <link data-trunk rel="rust" data-wasm-opt="2" />

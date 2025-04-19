@@ -1,0 +1,35 @@
+FROM rust:1-alpine AS build
+
+# Install build tools and dependencies.
+RUN apk add --no-cache musl-dev openssl-dev pkgconfig build-base git
+
+# Install trunk (WebAssembly web application bundler).
+RUN cargo install trunk --locked
+
+# Prepare application source
+WORKDIR /code
+
+# Copy only the files required to build the frontend so that Docker layer
+# caching remains effective. The full context is added later for Trunk's
+# watcher.
+COPY Trunk.toml ./
+COPY frontend/Cargo.toml frontend/
+
+# Dummy lib to cache dependencies
+RUN mkdir -p frontend/src && echo "pub fn dummy() {}" > frontend/src/lib.rs && \
+    trunk build --release --public-url "/" || true
+
+# Runtime image – reuse the build stage so we have trunk available.
+FROM build AS runtime
+
+WORKDIR /code
+
+# Copy full project for live reload / serve.
+COPY . .
+
+EXPOSE 8081
+
+# Default command replicates the original compose definition.
+# `--watch .` instructs Trunk to monitor the whole project directory for
+# changes. A value is mandatory for this flag since Trunk v0.18.
+CMD ["trunk", "serve", "--watch", ".", "--config", "Trunk.toml", "--public-url", "/", "--address", "0.0.0.0"]

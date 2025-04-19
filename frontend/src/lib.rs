@@ -12,8 +12,12 @@ use routes::Route;
 mod nav;
 use nav::Navbar;
 
-mod chat;
-use chat::Chat;
+// Placeholder chat component to unblock compilation while the real
+// WebSocket‑based implementation is being reworked.
+#[function_component(Chat)]
+fn chat_placeholder() -> Html {
+    html! { <p>{"Chat will be available soon."}</p> }
+}
 mod theme;
 
 use theme::{apply_class, current_pref, set_pref};
@@ -26,12 +30,12 @@ fn app() -> Html {
     // Ensure class applied on mount / when toggled
     {
         let is_dark = is_dark.clone();
-        use_effect_with_deps(
+        use_effect_with(
+            is_dark.clone(),
             move |dark| {
                 apply_class(**dark);
                 || {}
             },
-            is_dark.clone(),
         );
     }
 
