@@ -10,7 +10,7 @@ dev-back :=
 # Serve the front-end with live‑reload (requires `trunk`)
 dev-front :=
     cargo install trunk --version ^0.19.0 || true
-    trunk serve --open --watch static
+    trunk serve --open --watch frontend --config Trunk.toml --public-url /
 
 # Run both backend and frontend concurrently
 dev :=

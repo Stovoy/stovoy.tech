@@ -55,7 +55,26 @@ This document captures the high‑level tasks required to modernise and super‑
 
 ---
 
+
 ## 3. Front‑end / WASM overhaul 🖥️
+
+### ✅ Bootstrapped
+
+- [x] Created `frontend/` crate (Yew + wasm‑bindgen) with Trunk scaffold and hello page.
+- [x] Added `Trunk.toml` and hooked into `just dev-front`.
+- [x] Added `frontend` service to `docker-compose.yml` running Trunk dev server (port 8081).
+
+### ⏳ Next steps
+
+- [ ] Replace old `static/` Parcel artifacts; integrate TailwindCSS via Trunk plugin.
+- [ ] Port Arena chat UI to Yew.
+- [ ] Re‑implement Snake.
+- [ ] Dark‑mode toggle + responsive design.
+- [ ] HMR via trunk proxy to Axum backend.
+
+- [ ] Eventually drop legacy WASM crate under `static/wasm`.
+
+---
 
 - [ ] Replace Parcel + `stdweb` with modern stack:
   * `trunk` or `wasm‑pack` + `vite-plugin-rsw` for hot‑reload.

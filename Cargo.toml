@@ -3,7 +3,14 @@
 # We'll re‑add the frontend WASM crate once it is migrated to Trunk/Yew.
 members = [
     ".",          # legacy actix backend (will be removed later)
-    "backend"      # new axum backend under migration
+    "backend",     # new axum backend under migration
+    "frontend"     # new Yew frontend
+]
+
+# Build only backend crates on default target; the frontend is compiled via Trunk (wasm32).
+default-members = [
+    ".",
+    "backend"
 ]
 
 [package]
