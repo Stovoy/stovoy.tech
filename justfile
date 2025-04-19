@@ -5,7 +5,7 @@ set dotenv-load := false
 # Recompile & restart backend on change
 dev-back :=
     cargo install cargo-watch --version ^8.0.0 || true
-    cargo watch -x run -w src -w backend
+    cargo watch -x "run -p stovoy-tech-backend-axum" -w backend/src
 
 # Serve the front-end with live‑reload (requires `trunk`)
 dev-front :=

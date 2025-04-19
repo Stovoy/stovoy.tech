@@ -111,16 +111,18 @@ Two options:
 
 ## 7. Container & Ops 🐳
 
-- [ ] Use `Dockerfile.multi‑stage`:
-  1. `rust:slim` to build backend.
-  2. `trunk` builder image for frontend.
-  3. Distroless or `gcr.io/distroless/cc` runtime (only ~15 MB).
+### ✅ Completed so far
 
-- [ ] Expose single binary (`/usr/bin/stovoy-tech`) that serves HTTP & TLS.
-- [x] Healthcheck endpoint (`/healthz`) for k8s / docker compose.
-- [ ] Optional: Write a `docker‑compose.yml` for local stack.
+- [x] Healthcheck endpoint (`/healthz`) already exists in Axum backend.
+- [x] Multi‑stage `Dockerfile` building release binary and packaging into distroless runtime.
+- [x] Expose single binary (`/usr/bin/stovoy-tech`) that serves HTTP.
+- [x] Initial `docker-compose.yml` for local stack (backend service mapped to 8080).
 
-- [ ] `docker compose up dev` target that mounts source volumes and uses `cargo watch` + `trunk serve` inside separate service containers so contributors do **not** need local Rust toolchain.
+### ⏳ Outstanding
+
+- [ ] Add Trunk frontend build stage to Dockerfile once new UI is ready.
+- [ ] TLS termination with rustls (or keep Nginx); optional `rustls‑acme` for LetsEncrypt.
+- [ ] Docker compose `dev` target: hot‑reload (cargo watch + trunk serve) without local toolchain.
 
 ---
 
