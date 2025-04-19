@@ -54,7 +54,7 @@ fn main() {
     println!("Starting http server on {}", http_address);
     app_server
         .bind(http_address)
-        .expect(format!("Can not bind {}", http_address).as_str())
+        .unwrap_or_else(|_| panic!("Can not bind {}", http_address))
         .start();
 
     sys.run();
