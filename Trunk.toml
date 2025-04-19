@@ -1,0 +1,8 @@
+# Trunk configuration (minimal for now)
+
+[build]
+target = "wasm32-unknown-unknown"
+dist = "dist"
+
+[serve]
+port = 8081

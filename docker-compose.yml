@@ -11,4 +11,13 @@ services:
       - .:/app
     command: ["/usr/bin/stovoy-tech"]
 
+  frontend:
+    image: ghcr.io/thedodd/trunk:latest
+    working_dir: /code
+    volumes:
+      - .:/code
+    ports:
+      - "8081:8081"
+    command: ["trunk", "serve", "--watch", "--config", "Trunk.toml", "--public-url", "/"]
+
 # Front‑end container will be added once Trunk build is in place.
