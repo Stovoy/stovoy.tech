@@ -3,8 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <title>Stovoy.tech</title>
-    <!-- Instruct Trunk to build the Rust WASM.
-         wasm-opt gives smaller release builds; harmless in dev. -->
+    <!-- Tailwind via Trunk plugin -->
+    <link data-trunk rel="tailwind" href="style.css" />
+
+    <!-- Instruct Trunk to build the Rust WASM -->
     <link data-trunk rel="rust" data-wasm-opt="2" />
   </head>
   <body>

@@ -85,6 +85,7 @@ This document captures the high‑level tasks required to modernise and super‑
 - [ ] Port Arena chat UI to chosen framework.
 - [ ] Re‑implement Snake using new renderer; maybe add adaptive difficulty + touch controls.
 - [ ] Adopt TailwindCSS or DaisyUI for quick styling; integrate with Trunk `tailwind-plugin`.
+- [x] Adopt TailwindCSS via Trunk tailwind plugin; basic setup in frontend.
 - [ ] Dark‑mode toggle + responsive design.
 
 - [ ] Hot Module Reloading (HMR): ensure Trunk dev server pushes live‑reload to the browser; research `trunk --proxy-backend` to forward API calls to running axum instance for a zero‑refresh workflow.
