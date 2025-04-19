@@ -5,7 +5,12 @@
 
 use wasm_bindgen::prelude::*;
 use yew::prelude::*;
-use web_sys::window;
+
+mod routes;
+use routes::Route;
+
+mod nav;
+use nav::Navbar;
 
 mod chat;
 use chat::Chat;
@@ -38,29 +43,28 @@ fn app() -> Html {
             is_dark.set(new_val);
         })
     };
-    // Determine path to decide what to render.
-    let pathname = window()
-        .and_then(|w| w.location().pathname().ok())
-        .unwrap_or_default();
+    use yew_router::prelude::*;
 
-    let main_content = if pathname == "/game/arena" {
-        html! { <Chat /> }
-    } else {
-        html! {
+    let switch = Callback::from(move |route: Route| match route {
+        Route::Home => html! {
             <div class="text-center mt-4">
                 <h1 class="text-3xl font-bold">{"Stovoy.tech reboot 🚀"}</h1>
                 <p class="mt-2 text-gray-600 dark:text-gray-300">{"Hello from Yew + Trunk!"}</p>
             </div>
-        }
-    };
+        },
+        Route::Arena => html! { <Chat /> },
+        Route::Snake => html! { <div class="text-center mt-8">{"Snake v2 coming soon…"}</div> },
+        Route::NotFound => html! { <div class="text-center mt-8">{"404"}</div> },
+    });
 
     html! {
-        <>
+        <BrowserRouter>
+            <Navbar />
             <button onclick={toggle_theme} class="fixed bottom-4 right-4 bg-gray-200 dark:bg-gray-700 text-sm px-3 py-1 rounded shadow">
                 { if *is_dark { "Light" } else { "Dark" } }
             </button>
-            { main_content }
-        </>
+            <Switch<Route> render={switch} />
+        </BrowserRouter>
     }
 }
 
