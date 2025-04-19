@@ -1,5 +1,17 @@
-*
-!static/dist
-!target/stovoy-tech
-!resources/entrypoint.sh
-!resources/nginx.conf
+# Exclude heavy build artefacts and local-only directories while still
+# including all Rust and frontend source code required to build the
+# workspace inside Docker.
+
+# ───────────────────────────────────────── Rust ─────────────
+target
+**/target
+
+# ───────────────────────────────────────── Node / JS ─────────
+**/node_modules
+
+# ───────────────────────────────────────── Misc  ─────────────
+.git
+*.swp
+*.swo
+*.tmp
+*.bak

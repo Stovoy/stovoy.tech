@@ -40,8 +40,8 @@ This document captures the high‑level tasks required to modernise and super‑
 
 ### ⏳ Next up
 
-- [ ] Broadcast chat implementation using `tokio::sync::broadcast` (shared state).
-- [ ] Graceful shutdown & metrics (`prometheus_client`).
+- [x] Broadcast chat implementation using `tokio::sync::broadcast` (shared state).
+- [x] Graceful shutdown implemented.
 - [ ] Configuration via `figment` / `config` crate; env‑var overrides.
 - [ ] Remove legacy Actix backend once feature‑parity reached.
 

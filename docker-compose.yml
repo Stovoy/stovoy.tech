@@ -4,20 +4,39 @@ services:
   backend:
     build: .
     image: stovoy-tech-dev
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     volumes:
-      # Mount source for live reload when running in dev mode (cargo watch)
       - .:/app
     command: ["/usr/bin/stovoy-tech"]
 
   frontend:
-    image: ghcr.io/thedodd/trunk:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     working_dir: /code
     volumes:
       - .:/code
-    ports:
-      - "8081:8081"
-    command: ["trunk", "serve", "--watch", "--config", "Trunk.toml", "--public-url", "/"]
+    expose:
+      - "8081"
+    # Trunk's `--watch` flag requires an explicit path since v0.18. Supplying
+    # the current directory maintains the intended behavior of watching the
+    # whole project tree for changes.
+    command: [
+      "trunk", "serve",
+      "--watch", ".",
+      "--config", "Trunk.toml",
+      "--public-url", "/",
+      "--address", "0.0.0.0"
+    ]
 
-# Front‑end container will be added once Trunk build is in place.
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
