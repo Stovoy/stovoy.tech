@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    image: stovoy-tech-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount source for live reload when running in dev mode (cargo watch)
+      - .:/app
+    command: ["/usr/bin/stovoy-tech"]
+
+# Front‑end container will be added once Trunk build is in place.
