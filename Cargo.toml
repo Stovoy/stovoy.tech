@@ -2,7 +2,8 @@
 # The root acts as the backend package *and* workspace root.
 # We'll re‑add the frontend WASM crate once it is migrated to Trunk/Yew.
 members = [
-    "." # Backend service
+    ".",          # legacy actix backend (will be removed later)
+    "backend"      # new axum backend under migration
 ]
 
 [package]
