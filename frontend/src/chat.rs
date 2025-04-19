@@ -97,7 +97,7 @@ pub fn chat() -> Html {
     html! {
         <div class="max-w-xl mx-auto p-4">
             <h2 class="text-xl font-semibold mb-2">{"Arena Chat"}</h2>
-            <div class="border rounded h-64 overflow-y-auto p-2 bg-gray-50">
+            <div class="border rounded h-64 overflow-y-auto p-2 bg-gray-50 dark:bg-gray-800 dark:text-gray-200">
                 {
                     for (*messages).iter().map(|m| html!{ <div class="text-sm mb-1"> {m} </div> })
                 }
@@ -105,12 +105,12 @@ pub fn chat() -> Html {
 
             <form class="mt-2 flex" onsubmit={onsubmit}>
                 <input
-                    class="flex-grow border rounded-l px-2 py-1"
+                    class="flex-grow border rounded-l px-2 py-1 dark:bg-gray-900 dark:border-gray-600"
                     placeholder="Type a message..."
                     value={(*input_value).clone()}
                     {oninput}
                 />
-                <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded-r">{"Send"}</button>
+                <button type="submit" class="bg-blue-600 text-white px-3 py-1 rounded-r dark:bg-blue-500">{"Send"}</button>
             </form>
         </div>
     }

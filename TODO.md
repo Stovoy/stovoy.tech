@@ -69,7 +69,7 @@ This document captures the high‑level tasks required to modernise and super‑
 - [ ] Replace old `static/` Parcel artifacts; integrate TailwindCSS via Trunk plugin.
 - [ ] Port Arena chat UI to Yew.
 - [ ] Re‑implement Snake.
-- [ ] Dark‑mode toggle + responsive design.
+- [x] Dark‑mode toggle (class‑based, persisted in localStorage) + responsive Tailwind.
 - [ ] HMR via trunk proxy to Axum backend.
 
 - [ ] Eventually drop legacy WASM crate under `static/wasm`.
