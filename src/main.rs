@@ -19,7 +19,8 @@ fn main() {
     ctrlc::set_handler(move || {
         println!("SIGTERM or SIGINT detected, exiting.");
         exit(1);
-    }).expect("Error setting Ctrl-C handler");
+    })
+    .expect("Error setting Ctrl-C handler");
 
     let sys = actix::System::new("stovoy.tech");
 
@@ -34,7 +35,8 @@ fn main() {
             .middleware(middleware::Logger::default())
             .middleware(session::SessionStorage::new(
                 session::CookieSessionBackend::signed(&[0; 32]).secure(false),
-            )).resource("/api/game/arena", |r| r.route().f(arena::arena_route))
+            ))
+            .resource("/api/game/arena", |r| r.route().f(arena::arena_route))
             .default_resource(|r| {
                 // Default to 404 for GET request.
                 r.method(Method::GET).f(error_404);
@@ -44,7 +46,8 @@ fn main() {
                     .filter(pred::Not(pred::Get()))
                     .f(|_| HttpResponse::MethodNotAllowed());
             })
-    }).shutdown_timeout(0);
+    })
+    .shutdown_timeout(0);
 
     let http_address = "0.0.0.0:8080";
 

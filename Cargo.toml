@@ -1,11 +1,26 @@
+[workspace]
+# The root acts as the backend package *and* workspace root.
+# We'll re‑add the frontend WASM crate once it is migrated to Trunk/Yew.
+members = [
+    "." # Backend service
+]
+
 [package]
-name = "stovoy-tech"
+name = "stovoy-tech-backend"
 version = "0.1.0"
+edition = "2021"
 authors = ["Steve Mostovoy <stevemostovoysm@gmail.com>"]
-edition = "2018"
 
 [dependencies]
 actix = "0.7"
 actix-web = { version = "0.7" }
-ctrlc = { version = "3.0", features = ["termination"] }
+ctrlc = { version = "3", features = ["termination"] }
 futures = "0.1"
+
+[[bin]]
+name = "stovoy-tech"
+path = "src/main.rs"
+
+# Temporary: silence the upcoming edition‑idiom warnings until we fully port.
+[workspace.package]
+edition = "2021"

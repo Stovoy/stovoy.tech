@@ -25,14 +25,16 @@ impl Actor for ArenaSession {
             .chat_addr
             .send(chat::Connect {
                 addr: addr.recipient(),
-            }).into_actor(self)
+            })
+            .into_actor(self)
             .then(|res, act, ctx| {
                 match res {
                     Ok(res) => act.id = res,
                     _ => ctx.stop(),
                 }
                 fut::ok(())
-            }).wait(ctx);
+            })
+            .wait(ctx);
     }
 
     fn stopping(&mut self, ctx: &mut Self::Context) -> Running {
