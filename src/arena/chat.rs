@@ -16,23 +16,16 @@ pub struct Disconnect {
 }
 
 #[derive(Message)]
+#[allow(dead_code)]
 pub struct ClientMessage {
     pub id: usize,
     pub msg: String,
 }
 
+#[derive(Default)]
 pub struct ChatServer {
     sessions: HashMap<usize, Recipient<Message>>,
     current_id: usize,
-}
-
-impl Default for ChatServer {
-    fn default() -> ChatServer {
-        ChatServer {
-            sessions: HashMap::new(),
-            current_id: 0,
-        }
-    }
 }
 
 impl ChatServer {
