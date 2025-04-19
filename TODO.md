@@ -58,25 +58,26 @@ This document captures the high‑level tasks required to modernise and super‑
 
 ## 3. Front‑end / WASM overhaul 🖥️
 
-### ✅ Bootstrapped
+### ✅ Completed
 
-- [x] Created `frontend/` crate (Yew + wasm‑bindgen) with Trunk scaffold and hello page.
-- [x] Added `Trunk.toml` and hooked into `just dev-front`.
-- [x] Added `frontend` service to `docker-compose.yml` running Trunk dev server (port 8081).
+- [x] Initial Yew + Trunk scaffold (`frontend/` crate, hello page & dev server).
+- [x] TailwindCSS via Trunk plugin.
+- [x] Dark‑mode toggle (persisted in `localStorage`).
+- [x] Arena chat UI ported to Yew (echo for now).
+- [x] Responsive navigation bar with yew‑router (Home / Arena / Snake routes).
 
-### ⏳ Next steps
+### 🚧 In‑flight
 
-- [ ] Replace old `static/` Parcel artifacts; integrate TailwindCSS via Trunk plugin.
-- [ ] Port Arena chat UI to Yew.
-- [ ] Re‑implement Snake.
-- [x] Dark‑mode toggle (class‑based, persisted in localStorage) + responsive Tailwind.
-- [ ] HMR via trunk proxy to Axum backend.
+- [ ] Snake v2 rewrite (Slice 1 → minimal playable, Slice 2 → polish & mobile controls).
 
-- [ ] Eventually drop legacy WASM crate under `static/wasm`.
+### ⏳ Backlog
+
+- [ ] Remove legacy `static/wasm` crate & Parcel artefacts.
+- [ ] HMR proxy (`trunk --proxy-backend`) for zero‑refresh workflow.
 
 ---
 
-- [ ] Replace Parcel + `stdweb` with modern stack:
+- [ ] Replace Parcel + `stdweb` with modern stack (DONE — migrated to Yew + wasm‑bindgen + Trunk, but keep until old code removed):
   * `trunk` or `wasm‑pack` + `vite-plugin-rsw` for hot‑reload.
   * Switch to `wasm-bindgen` + `web-sys`/`js‑sys`; consider a Rust front‑end framework:
       - `Yew` (mature, JSX‑like)  _or_
