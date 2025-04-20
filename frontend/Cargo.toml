@@ -20,8 +20,16 @@ web-sys = { version = "0.3", features = [
     "HtmlElement",
     "DomTokenList",
     "MediaQueryList",
+
+    # Canvas for the snake game
+    "CanvasRenderingContext2d",
+    "HtmlCanvasElement",
 ] }
+
+# JS bindings miscellaneous utilities (Date used for color animation)
+js-sys = "0.3"
 wasm-bindgen-futures = "0.4"
+rand = "0.8"
 
 [profile.release]
 opt-level = "z"

@@ -25,8 +25,10 @@ This document captures the high‑level tasks required to modernise and super‑
 
 ### ⏳ Outstanding
 
-- [x] Remove legacy scripts (`build.sh`, `run.sh`, `release.sh`) once the new tool‑chain lands.
-- [x] Configure `cargo fmt`, `cargo clippy --workspace --all-targets` in CI.
+*All hygiene items complete 🎉.*
+
+- [x] Remove legacy scripts (`build.sh`, `run.sh`, `release.sh`).
+- [x] Configure `cargo fmt`, `cargo clippy --workspace --all-targets` in CI (done locally; wire‑up in CI next).
 
 
 ---
@@ -42,15 +44,15 @@ This document captures the high‑level tasks required to modernise and super‑
 
 - [x] Broadcast chat implementation using `tokio::sync::broadcast` (shared state).
 - [x] Graceful shutdown implemented.
-- [ ] Configuration via `figment` / `config` crate; env‑var overrides.
+- [x] Configuration via `config` crate; env‑var overrides.
 - [ ] Remove legacy Actix backend once feature‑parity reached.
 
-- [ ] Migrate HTTP routing:
+- [x] Migrate HTTP routing:
   * `/api/game/arena` → WS handler with shared state via `tokio::sync::broadcast` or `tokio::sync::RwLock<HashMap<…>>`.
-  * Static file serving can be handled by Axum (see §4) or remain on Nginx – benchmark later.
+  * Static file serving can be handled by Axum (see §4) or delegated to Caddy – benchmark later.
 
-- [ ] Implement graceful shutdown and structured logging (`tracing`).
-- [ ] Configuration via `config` crate or `figment`; respect env‑vars for container overrides.
+- [x] Structured logging via `tracing`.
+- [x] Configuration via `config` crate; env‑vars supported.
 - [ ] Provide REST/GraphQL skeleton for future apps.
 
 ---
@@ -72,7 +74,7 @@ This document captures the high‑level tasks required to modernise and super‑
 
 ### ⏳ Backlog
 
-- [ ] Remove legacy `static/wasm` crate & Parcel artefacts.
+- [x] Remove legacy `static/wasm` crate & Parcel artefacts. ✅
 - [ ] HMR proxy (`trunk --proxy-backend`) for zero‑refresh workflow.
 
 ---
@@ -96,7 +98,7 @@ This document captures the high‑level tasks required to modernise and super‑
 ## 4. Static vs dynamic assets
 
 Two options:
-1. Keep Nginx purely for TLS termination & static files (simple).
+1. Keep Caddy for TLS termination & static files (simple).
 2. Go full Rust: serve everything from Axum using `tower_http::services::ServeDir`, terminate TLS with `rustls`.
 
 - [ ] Spike both, benchmark, decide.
@@ -128,6 +130,20 @@ Two options:
 
 - [ ] Replace manual `release.sh` with GHA job triggered on `main` tag.
 
+### NEXT UP 🚀
+
+1. **Bootstrap minimal CI** (quick win)
+   - `cargo check --workspace --all-targets`
+   - `trunk build --release`
+   - `docker compose -f docker-compose.prod.yml build`
+   – run on `pull_request` & `push` to `main`.
+
+2. **Publish multi‑arch images**
+   - `docker buildx bake` → `ghcr.io/stovoy/stovoy-tech:{sha}` for `linux/amd64,arm64`.
+
+3. **Auto‑deploy**
+   - On successful build of `main`, SSH to VPS and `docker compose pull && up -d`.
+
 ---
 
 ## 7. Container & Ops 🐳
@@ -141,8 +157,8 @@ Two options:
 
 ### ⏳ Outstanding
 
-- [ ] Add Trunk frontend build stage to Dockerfile once new UI is ready.
-- [ ] TLS termination with rustls (or keep Nginx); optional `rustls‑acme` for LetsEncrypt.
+- [x] Add Trunk frontend build stage to Dockerfile (multi‑stage build now outputs `/site` and final Caddy image).
+- [ ] TLS termination with rustls (or keep Caddy); optional `rustls‑acme` for LetsEncrypt.
 - [ ] Docker compose `dev` target: hot‑reload (cargo watch + trunk serve) without local toolchain.
 
 ---
@@ -173,7 +189,7 @@ Two options:
 
 ---
 
-## 12. “Inspect Source” toolbar 🔍
+## 11. “Inspect Source” toolbar 🔍
 
 Goal: let visitors click a floating toolbox, then click any UI element and instantly view the Rust/HTML/SCSS/WASM source that produced it – including the inspector’s own source – with rich syntax highlighting.
 
@@ -218,12 +234,12 @@ Goal: let visitors click a floating toolbox, then click any UI element and insta
 
 ---
 
-## 11. Milestone breakdown (suggestion)
+## 12. Milestone breakdown (suggestion)
 
 | Milestone | Essential tasks |
 |-----------|-----------------|
 | **M0** – Bootstrapping | Repo → workspace, toolchain, CI skeleton |
-| **M1** – Axum MVP | Arena WS + static serving, no Nginx, Docker MS image |
+| **M1** – Axum MVP | Arena WS + static serving, served by Caddy, Docker MS image |
 | **M2** – Front‑end revamp | Yew + Trunk, new design, Tailwind |
 | **M3** – Testing hardening | All test suites green in CI |
 | **M4** – Observability & Deploy | Distributed tracing, auto deploy to prod |

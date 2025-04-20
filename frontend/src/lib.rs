@@ -11,6 +11,8 @@ use routes::Route;
 
 mod nav;
 use nav::Navbar;
+mod snake;
+use snake::SnakeGame;
 
 // Placeholder chat component to unblock compilation while the real
 // WebSocket‑based implementation is being reworked.
@@ -62,7 +64,7 @@ fn app() -> Html {
             </section>
         },
         Route::Arena => html! { <Chat /> },
-        Route::Snake => html! { <div class="text-center mt-12 text-2xl">{"🐍 Snake v2 coming soon…"}</div> },
+        Route::Snake => html! { <SnakeGame /> },
         Route::NotFound => html! { <div class="text-center mt-8">{"404"}</div> },
     });
 

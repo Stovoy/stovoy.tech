@@ -3,15 +3,43 @@
   <head>
     <meta charset="utf-8" />
     <title>Stovoy.tech</title>
-    <!-- The built‑in TailwindCSS pipeline has changed across Trunk versions.
-         Leave plain stylesheet for now to unblock the dev server. -->
-    <link rel="stylesheet" href="style.css" />
+    <!-- Inject Tailwind via CDN. Using the official standalone script keeps the
+         build pipeline lightweight while we experiment with the design. When
+         we switch back to a full PostCSS flow we can drop this block. -->
+    <script>
+      tailwind = window.tailwind || {};
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Poppins', 'ui-sans-serif', 'system-ui'],
+            },
+            colors: {
+              primary: {
+                light: '#dbeafe',
+                DEFAULT: '#6366f1',
+                dark: '#4338ca',
+              },
+            },
+          },
+        },
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+
+    <!-- The local stylesheet left in the repo for eventual PostCSS usage is
+         no longer loaded to prevent unprocessed `@tailwind` directives from
+         leaking into production. -->
 
     <!-- Instruct Trunk to build the Rust WASM -->
     
 <script type="module">
-import init, * as bindings from '/stovoy-tech-frontend-36494d0ac8a99863.js';
-const wasm = await init({ module_or_path: '/stovoy-tech-frontend-36494d0ac8a99863_bg.wasm' });
+import init, * as bindings from '/stovoy-tech-frontend-4f7f366ac4f93bd3.js';
+const wasm = await init({ module_or_path: '/stovoy-tech-frontend-4f7f366ac4f93bd3_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -20,7 +48,7 @@ window.wasmBindings = bindings;
 dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
 
 </script>
-  <link rel="modulepreload" href="/stovoy-tech-frontend-36494d0ac8a99863.js" crossorigin="anonymous" integrity="sha384-YugabRMzg5dzkUQ2N/xZ3ny0wc/BA+nO+zgoYeCpusMY3hSvsRGJkgnWVKpR1EMo"><link rel="preload" href="/stovoy-tech-frontend-36494d0ac8a99863_bg.wasm" crossorigin="anonymous" integrity="sha384-leM95v3Hh13JhKGLOCr74sr44JGyLjIrRs3aKUvTV40QyVCWOVrFn67nUrKY+BCa" as="fetch" type="application/wasm"></head>
+  <link rel="modulepreload" href="/stovoy-tech-frontend-4f7f366ac4f93bd3.js" crossorigin="anonymous" integrity="sha384-GAXzDHrWMd3YtySexOJobC5CIniI+mNA2IEQ9ORaoJF8Nt2c3ZNpeHFVTO7dgwuA"><link rel="preload" href="/stovoy-tech-frontend-4f7f366ac4f93bd3_bg.wasm" crossorigin="anonymous" integrity="sha384-vzemHd2Z+NO74qLATy1XazLJ7YGvvOIVHu4bLOcNLq1YkujPijE8WY4A8gvZ65Ha" as="fetch" type="application/wasm"></head>
   <body>
     <div id="root"></div>
   <script>"use strict";
