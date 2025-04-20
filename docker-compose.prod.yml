@@ -8,7 +8,10 @@ services:
       - "8080"
 
   caddy:
-    image: caddy:2
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: caddy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -16,7 +19,6 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./Caddyfile.prod:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
 

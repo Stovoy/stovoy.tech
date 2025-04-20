@@ -1528,6 +1528,8 @@ version = "0.1.0"
 dependencies = [
  "futures-util",
  "gloo 0.11.0",
+ "js-sys",
+ "rand",
  "serde",
  "wasm-bindgen",
  "wasm-bindgen-futures",
