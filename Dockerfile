@@ -1,88 +1,162 @@
-################################################################################
-# Backend Dockerfile – optimized for fast, incremental rebuilds when iterating  #
-# locally with docker‑compose. The heavy dependency compilation is performed    #
-# once and cached aggressively using `cargo-chef`; subsequent edits to the      #
-# project source only have to re‑compile the application crate itself which is  #
-# an order of magnitude faster than rebuilding the whole dependency tree each   #
-# time.                                                                        #
-################################################################################
+# syntax=docker/dockerfile:1.4
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Stage 1 – Plan build (collect dependency graph)                              ─
-# -----------------------------------------------------------------------------
-# We install cargo-chef and use it to generate a minimal “recipe” containing    #
-# only the information required to compile the dependency tree. Because that   #
-# recipe is deterministic, Docker can reuse the layer as long as *Cargo.toml*   #
-# and *Cargo.lock* do not change, giving us near‑instant rebuilds when we only  #
-# touch Rust source files.                                                      #
-# ──────────────────────────────────────────────────────────────────────────────
+# Unified Dockerfile that builds both the Rust back-end and the Yew / Trunk
+# front-end. It exposes three build targets that docker-compose and CI can pick
+# from:
+#   • runtime-backend – tiny image with the compiled Axum binary.
+#   • frontend-dev  – includes Rust + Trunk for live-reload during development.
+#   • caddy         – production image serving the static site on Caddy.
+
+# The heavy dependency graph is compiled once via cargo-chef and shared across
+# all subsequent stages.
+
+################################################################################
+# Stage 1 – plan (collect dependency graph)                                    #
+################################################################################
 FROM rust:1-alpine AS chef-planner
+
 WORKDIR /app
 
-# Build tools required for musl linking as well as cargo‑chef itself.
-RUN apk add --no-cache musl-dev pkgconfig build-base git && \
-    cargo install cargo-chef --locked
+ARG CARGO_HOME=/usr/local/cargo
+ENV CARGO_HOME=${CARGO_HOME}
 
-# Copy manifests only – no source code yet.
-COPY Cargo.toml Cargo.lock ./
+# Install tooling used at build-time.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    apk add --no-cache musl-dev openssl-dev pkgconfig build-base git && \
+    cargo install cargo-chef --locked && \
+    cargo install trunk --locked
+
+# Copy workspace manifests only.
+COPY Cargo.toml Cargo.lock Trunk.toml ./
 COPY backend/Cargo.toml backend/Cargo.toml
 COPY frontend/Cargo.toml frontend/Cargo.toml
 
-# The `cargo metadata` call executed by `cargo chef prepare` requires that the
-# crate roots referenced in the workspace actually exist. We do **not** want
-# to copy the full source tree at this point because it would bust the Docker
-# cache on every code change. Instead, create a minimal stub so the metadata
-# extraction succeeds.
+# Minimal crate root so `cargo metadata` succeeds without full source.
 RUN mkdir -p frontend/src && echo "pub fn _dummy() {}" > frontend/src/lib.rs
 
-# Generate the dependency recipe (Cargo.lock + Cargo.toml → recipe.json).
+# Generate deterministic dependency recipe.
 RUN cargo chef prepare --recipe-path recipe.json
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Stage 2 – Cook (compile all dependencies)                                    ─
-# -----------------------------------------------------------------------------
+################################################################################
+# Stage 2 – cook (compile all dependencies once)                               #
+################################################################################
 FROM rust:1-alpine AS chef-cook
+
 WORKDIR /app
 
-RUN apk add --no-cache musl-dev pkgconfig build-base git && \
-    cargo install cargo-chef --locked
+ARG CARGO_HOME=/usr/local/cargo
+ENV CARGO_HOME=${CARGO_HOME}
 
-# Copy the recipe generated in the previous stage and build the whole           #
-# dependency graph. The output is cached in Docker layers and reused across     #
-# subsequent builds until the recipe changes (i.e. dependency versions change).
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    apk add --no-cache musl-dev openssl-dev pkgconfig build-base git && \
+    cargo install cargo-chef --locked && \
+    cargo install trunk --locked && \
+    rustup target add wasm32-unknown-unknown
+
 COPY --from=chef-planner /app/recipe.json ./recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+
+# Compile dependency graph for native target.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    cargo chef cook --release --recipe-path recipe.json
+
+# Compile dependency graph for WebAssembly target (front-end).
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    cargo chef cook --release --recipe-path recipe.json \
+        --target wasm32-unknown-unknown \
+        --package stovoy-tech-frontend
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Stage 3 – Build the application itself                                       ─
-# -----------------------------------------------------------------------------
-FROM rust:1-alpine AS backend-builder
+################################################################################
+# Stage 3 – workspace builder (build back-end crate)                           #
+################################################################################
+FROM rust:1-alpine AS workspace-builder
+
 WORKDIR /app
 
-RUN apk add --no-cache musl-dev pkgconfig build-base git
+ARG CARGO_HOME=/usr/local/cargo
+ENV CARGO_HOME=${CARGO_HOME}
 
-# Copy the dependency artefacts produced by cargo‑chef.
+RUN apk add --no-cache musl-dev openssl-dev pkgconfig build-base git
+
+# Bring over compiled dependencies.
 COPY --from=chef-cook /app/target /app/target
 
-# Copy the full source now – only this layer is invalidated when you change a   #
-# *.rs* file.
+# Copy full workspace source.
 COPY . .
 
-# Compile the actual binary – thanks to the cached dependency layers this step  #
-# is fast because it only has to build the workspace crates that changed.
-RUN cargo build --release -p stovoy-tech-backend-axum
+# Build the back-end binary.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    cargo build --release -p stovoy-tech-backend-axum
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Stage 4 – Runtime image                                                      ─
-# -----------------------------------------------------------------------------
-FROM gcr.io/distroless/cc-debian12 AS runtime
+################################################################################
+# Stage 4 – runtime image for back-end                                         #
+################################################################################
+FROM gcr.io/distroless/cc-debian12 AS runtime-backend
+
 WORKDIR /app
 
-# Copy backend binary (statically linked, ~5‑10 MB).
-COPY --from=backend-builder /app/target/release/stovoy-tech-axum /usr/bin/stovoy-tech
+COPY --from=workspace-builder /app/target/release/stovoy-tech-axum /usr/bin/stovoy-tech
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/stovoy-tech"]
+
+
+################################################################################
+# Stage 5 – front-end development image                                        #
+################################################################################
+#
+# ---------------- Front-end development image -------------------------------
+#
+
+FROM rust:1-alpine AS frontend-dev
+
+ENV CARGO_TARGET_DIR=/app/target
+
+WORKDIR /workspace
+
+ARG CARGO_HOME=/usr/local/cargo
+ENV CARGO_HOME=${CARGO_HOME}
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    apk add --no-cache musl-dev openssl-dev pkgconfig build-base git && \
+    cargo install trunk --locked && \
+    rustup target add wasm32-unknown-unknown
+
+# Reuse cached build artefacts so that `trunk serve` only recompiles changed crates.
+COPY --from=chef-cook /app/target /app/target
+
+# Full workspace source (overwritten by volume mount in docker-compose during dev).
+COPY . .
+
+EXPOSE 8081
+
+CMD ["trunk", "serve", "--watch", ".", "--config", "Trunk.toml", "--public-url", "/", "--address", "0.0.0.0"]
+
+
+################################################################################
+# Stage 6 – static site build                                                  #
+################################################################################
+FROM frontend-dev AS site-build
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
+    trunk build --release --dist /site --public-url /
+
+
+################################################################################
+# Stage 7 – production Caddy image                                             #
+################################################################################
+FROM caddy:2-alpine AS caddy
+
+COPY Caddyfile.prod /etc/caddy/Caddyfile
+COPY --from=site-build /site /site
+
+# Caddy listens on 80/443 by default.
