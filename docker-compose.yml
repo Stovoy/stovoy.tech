@@ -2,8 +2,10 @@ version: "3.9"
 
 services:
   backend:
-    build: .
-    image: stovoy-tech-dev
+    build:
+      context: .
+      target: runtime-backend
+    image: stovoy-tech-dev-backend
     expose:
       - "8080"
     volumes:
@@ -13,21 +15,17 @@ services:
   frontend:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
-      target: runtime
-    working_dir: /code
+      target: frontend-dev
+    working_dir: /workspace
     volumes:
-      - .:/code
+      - .:/workspace
     expose:
       - "8081"
-    # Trunk's `--watch` flag requires an explicit path since v0.18. Supplying
-    # the current directory maintains the intended behavior of watching the
-    # whole project tree for changes.
     command: [
-      "trunk", "serve",
-      "--watch", ".",
-      "--config", "Trunk.toml",
-      "--public-url", "/",
+      "trunk", "serve", 
+      "--watch", ".", 
+      "--config", "Trunk.toml", 
+      "--public-url", "/", 
       "--address", "0.0.0.0"
     ]
 

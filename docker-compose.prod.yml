@@ -10,7 +10,6 @@ services:
   caddy:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
       target: caddy
     restart: unless-stopped
     ports:
