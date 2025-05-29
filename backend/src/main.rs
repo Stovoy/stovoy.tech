@@ -7,12 +7,16 @@ use axum::{
     },
     response::IntoResponse,
     routing::get,
+    Json,
     Router,
 };
 use tokio::signal;
 use tracing::info;
 use axum::routing::get_service;
 use tower_http::services::{ServeDir, ServeFile};
+
+
+
 
 // --- Configuration --------------------------------------------------------
 
@@ -56,6 +60,8 @@ impl Settings {
     }
 }
 
+
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize structured logging. Respects RUST_LOG, defaults to info.
@@ -85,8 +91,9 @@ async fn main() -> anyhow::Result<()> {
     let index_service = get_service(ServeFile::new(format!("{}/index.html", &settings.static_dir)));
 
     let app = Router::new()
-        // Health‑check endpoint consumed by Caddy's reverse‑proxy.
+        // Health-check endpoint consumed by Caddy's reverse-proxy.
         .route("/healthz", get(healthz))
+        .route("/api/ping", get(ping))
         // Arena WebSocket endpoint.
         .route("/api/game/arena", get(arena_ws_handler))
         // Serve static assets under /assets/** so they are always reachable via
@@ -177,6 +184,12 @@ async fn handle_socket(mut socket: WebSocket, tx: tokio::sync::broadcast::Sender
         }
     }
 }
+
+async fn ping() -> Json<serde_json::Value> {
+    Json(serde_json::json!({ "message": "pong" }))
+}
+
+
 
 async fn shutdown_signal() {
     // Wait for SIGINT or SIGTERM.
