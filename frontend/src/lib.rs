@@ -14,12 +14,8 @@ use nav::Navbar;
 mod snake;
 use snake::SnakeGame;
 
-// Placeholder chat component to unblock compilation while the real
-// WebSocket‑based implementation is being reworked.
-#[function_component(Chat)]
-fn chat_placeholder() -> Html {
-    html! { <p class="text-center text-lg">{"Chat will be available soon."}</p> }
-}
+mod chat;
+use chat::Chat;
 mod theme;
 
 use theme::{apply_class, current_pref, set_pref};
