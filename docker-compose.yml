@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      target: runtime-backend
+    image: stovoy-tech-dev-backend
+    expose:
+      - "8080"
+    volumes:
+      - .:/app
+    command: ["/usr/bin/stovoy-tech"]
+
+  frontend:
+    build:
+      context: .
+      target: frontend-dev
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    expose:
+      - "8081"
+    command: [
+      "trunk", "serve", 
+      "--watch", ".", 
+      "--config", "Trunk.toml", 
+      "--public-url", "/", 
+      "--address", "0.0.0.0"
+    ]
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
