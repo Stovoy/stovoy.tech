@@ -24,7 +24,7 @@ pub fn navbar() -> Html {
     html! {
         <nav class="backdrop-blur bg-white/70 dark:bg-gray-950/70 border-b border-gray-200 dark:border-gray-800 px-4 py-3 sticky top-0 z-50">
             <div class="flex items-center justify-between max-w-4xl mx-auto">
-                <span class="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-600">{"stovoy.tech"}</span>
+                <span class="font-bold text-xl text-transparent bg-clip-text bg-gradient-to-r from-primary to-indigo-600">{"stovoy.dev"}</span>
 
                 <button class="md:hidden" onclick={{
                     let open = open.clone();

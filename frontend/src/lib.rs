@@ -47,7 +47,7 @@ fn app() -> Html {
     let switch = Callback::from(move |route: Route| match route {
         Route::Home => html! {
             <section class="text-center flex flex-col items-center justify-center gap-6 py-12">
-                <h1 class="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent drop-shadow">{"Stovoy.tech"}</h1>
+                <h1 class="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent drop-shadow">{"Stovoy.dev"}</h1>
                 <p class="max-w-xl text-lg md:text-xl opacity-80">{"Rust‑powered playground, streaming assorted side‑projects and experiments. Have a poke around – source is only a click away."}</p>
 
                 <div class="flex gap-4 mt-6">

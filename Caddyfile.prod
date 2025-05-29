@@ -1,6 +1,6 @@
-# Production Caddyfile for stovoy.tech – automatic HTTPS via Let's Encrypt
+# Production Caddyfile for stovoy.dev – automatic HTTPS via Let's Encrypt
 
-stovoy.tech, www.stovoy.tech {
+stovoy.dev, www.stovoy.dev {
     encode zstd gzip
 
     # Redirect legacy healthz route
