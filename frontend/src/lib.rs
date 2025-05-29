@@ -32,13 +32,10 @@ fn app() -> Html {
     // Ensure class applied on mount / when toggled
     {
         let is_dark = is_dark.clone();
-        use_effect_with(
-            is_dark.clone(),
-            move |dark| {
-                apply_class(**dark);
-                || {}
-            },
-        );
+        use_effect_with(is_dark.clone(), move |dark| {
+            apply_class(**dark);
+            || {}
+        });
     }
 
     let toggle_theme = {

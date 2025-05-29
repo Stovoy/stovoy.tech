@@ -65,29 +65,31 @@ pub fn snake_game() -> Html {
     {
         let state = state.clone();
         use_effect(move || {
-            let listener = gloo::events::EventListener::new(&gloo::utils::window(), "keydown", move |evt| {
-                let evt: web_sys::KeyboardEvent = evt.dyn_ref::<web_sys::KeyboardEvent>().unwrap().clone();
-                let new_direction = match evt.key().as_str() {
-                    "ArrowUp" | "w" | "W" => Some(Direction::Up),
-                    "ArrowDown" | "s" | "S" => Some(Direction::Down),
-                    "ArrowLeft" | "a" | "A" => Some(Direction::Left),
-                    "ArrowRight" | "d" | "D" => Some(Direction::Right),
-                    _ => None,
-                };
-                if let Some(dir) = new_direction {
-                    let mut st = state.borrow_mut();
-                    // Prevent reversing directly into yourself.
-                    let opposite = match st.direction {
-                        Direction::Up => Direction::Down,
-                        Direction::Down => Direction::Up,
-                        Direction::Left => Direction::Right,
-                        Direction::Right => Direction::Left,
+            let listener =
+                gloo::events::EventListener::new(&gloo::utils::window(), "keydown", move |evt| {
+                    let evt: web_sys::KeyboardEvent =
+                        evt.dyn_ref::<web_sys::KeyboardEvent>().unwrap().clone();
+                    let new_direction = match evt.key().as_str() {
+                        "ArrowUp" | "w" | "W" => Some(Direction::Up),
+                        "ArrowDown" | "s" | "S" => Some(Direction::Down),
+                        "ArrowLeft" | "a" | "A" => Some(Direction::Left),
+                        "ArrowRight" | "d" | "D" => Some(Direction::Right),
+                        _ => None,
                     };
-                    if dir != opposite {
-                        st.next_direction = dir;
+                    if let Some(dir) = new_direction {
+                        let mut st = state.borrow_mut();
+                        // Prevent reversing directly into yourself.
+                        let opposite = match st.direction {
+                            Direction::Up => Direction::Down,
+                            Direction::Down => Direction::Up,
+                            Direction::Left => Direction::Right,
+                            Direction::Right => Direction::Left,
+                        };
+                        if dir != opposite {
+                            st.next_direction = dir;
+                        }
                     }
-                }
-            });
+                });
             // Cleanup listener when component unmounts.
             move || drop(listener)
         });
@@ -97,118 +99,121 @@ pub fn snake_game() -> Html {
     {
         let state = state.clone();
         let canvas_ref = canvas_ref.clone();
-        use_effect_with(
-            (),
-            move |_| {
-                // Acquire 2d context once.
-                let context: CanvasRenderingContext2d = canvas_ref
-                    .cast::<HtmlCanvasElement>()
-                    .expect("canvas not mounted yet")
-                    .get_context("2d")
-                    .unwrap()
-                    .unwrap()
-                    .dyn_into()
-                    .unwrap();
+        use_effect_with((), move |_| {
+            // Acquire 2d context once.
+            let context: CanvasRenderingContext2d = canvas_ref
+                .cast::<HtmlCanvasElement>()
+                .expect("canvas not mounted yet")
+                .get_context("2d")
+                .unwrap()
+                .unwrap()
+                .dyn_into()
+                .unwrap();
 
-                // Helper to (re)draw the entire board.
-                let mut draw = move |st: &GameState| {
-                    // Clear background.
-                    context.set_fill_style(&wasm_bindgen::JsValue::from_str("#f3f4f6"));
-                    context.fill_rect(0.0, 0.0, CANVAS as f64, CANVAS as f64);
+            // Helper to (re)draw the entire board.
+            let mut draw = move |st: &GameState| {
+                // Clear background.
+                context.set_fill_style(&wasm_bindgen::JsValue::from_str("#f3f4f6"));
+                context.fill_rect(0.0, 0.0, CANVAS as f64, CANVAS as f64);
 
-                    // Draw food.
-                    context.set_fill_style(&wasm_bindgen::JsValue::from_str("tomato"));
+                // Draw food.
+                context.set_fill_style(&wasm_bindgen::JsValue::from_str("tomato"));
+                context.fill_rect(
+                    (st.food.0 * CELL) as f64,
+                    (st.food.1 * CELL) as f64,
+                    CELL as f64,
+                    CELL as f64,
+                );
+
+                // Draw snake – color‑cycle for extra ✨.
+                let (r, g, b) = {
+                    let t = js_sys::Date::now() as f64 / 100.0;
+                    (
+                        (t.sin() * 127.0 + 128.0) as u8,
+                        (t.cos() * 127.0 + 128.0) as u8,
+                        200u8,
+                    )
+                };
+                context.set_fill_style(&wasm_bindgen::JsValue::from_str(&format!(
+                    "rgb({r},{g},{b})"
+                )));
+                for (x, y) in &st.snake {
                     context.fill_rect(
-                        (st.food.0 * CELL) as f64,
-                        (st.food.1 * CELL) as f64,
+                        (*x * CELL) as f64,
+                        (*y * CELL) as f64,
                         CELL as f64,
                         CELL as f64,
                     );
+                }
+            };
 
-                    // Draw snake – color‑cycle for extra ✨.
-                    let (r, g, b) = {
-                        let t = js_sys::Date::now() as f64 / 100.0;
-                        (
-                            (t.sin() * 127.0 + 128.0) as u8,
-                            (t.cos() * 127.0 + 128.0) as u8,
-                            200u8,
-                        )
-                    };
-                    context.set_fill_style(&wasm_bindgen::JsValue::from_str(&format!("rgb({r},{g},{b})")));
-                    for (x, y) in &st.snake {
-                        context.fill_rect(
-                            (*x * CELL) as f64,
-                            (*y * CELL) as f64,
-                            CELL as f64,
-                            CELL as f64,
-                        );
+            // Initial draw.
+            draw(&state.borrow());
+
+            // Advance the simulation at a fixed interval.
+            let interval = Interval::new(100, move || {
+                {
+                    let mut st = state.borrow_mut();
+                    if !st.alive {
+                        // Reset after death.
+                        *st = GameState {
+                            snake: vec![(GRID / 2, GRID / 2)],
+                            direction: Direction::Right,
+                            next_direction: Direction::Right,
+                            food: (
+                                rand::thread_rng().gen_range(0..GRID),
+                                rand::thread_rng().gen_range(0..GRID),
+                            ),
+                            alive: true,
+                        };
                     }
-                };
 
-                // Initial draw.
-                draw(&state.borrow());
+                    st.direction = st.next_direction;
+                    let (dx, dy) = st.direction.delta();
+                    let mut new_head = *st.snake.first().unwrap();
+                    new_head.0 += dx;
+                    new_head.1 += dy;
 
-                // Advance the simulation at a fixed interval.
-                let interval = Interval::new(100, move || {
+                    // Collision with walls.
+                    if new_head.0 < 0 || new_head.0 >= GRID || new_head.1 < 0 || new_head.1 >= GRID
                     {
-                        let mut st = state.borrow_mut();
-                        if !st.alive {
-                            // Reset after death.
-                            *st = GameState {
-                                snake: vec![(GRID / 2, GRID / 2)],
-                                direction: Direction::Right,
-                                next_direction: Direction::Right,
-                                food: (rand::thread_rng().gen_range(0..GRID), rand::thread_rng().gen_range(0..GRID)),
-                                alive: true,
-                            };
-                        }
-
-                        st.direction = st.next_direction;
-                        let (dx, dy) = st.direction.delta();
-                        let mut new_head = *st.snake.first().unwrap();
-                        new_head.0 += dx;
-                        new_head.1 += dy;
-
-                        // Collision with walls.
-                        if new_head.0 < 0 || new_head.0 >= GRID || new_head.1 < 0 || new_head.1 >= GRID {
-                            st.alive = false;
-                        }
-
-                        // Collision with self.
-                        if st.snake.contains(&new_head) {
-                            st.alive = false;
-                        }
-
-                        if !st.alive {
-                            return;
-                        }
-
-                        // Move.
-                        st.snake.insert(0, new_head);
-                        if new_head == st.food {
-                            // Spawn new food.
-                            let mut rng = rand::thread_rng();
-                            loop {
-                                let f = (rng.gen_range(0..GRID), rng.gen_range(0..GRID));
-                                if !st.snake.contains(&f) {
-                                    st.food = f;
-                                    break;
-                                }
-                            }
-                        } else {
-                            // Remove tail.
-                            st.snake.pop();
-                        }
+                        st.alive = false;
                     }
 
-                    // Redraw with updated state.
-                    draw(&state.borrow());
-                });
+                    // Collision with self.
+                    if st.snake.contains(&new_head) {
+                        st.alive = false;
+                    }
 
-                // Cleanup interval on component unmount.
-                move || drop(interval)
-            }
-        );
+                    if !st.alive {
+                        return;
+                    }
+
+                    // Move.
+                    st.snake.insert(0, new_head);
+                    if new_head == st.food {
+                        // Spawn new food.
+                        let mut rng = rand::thread_rng();
+                        loop {
+                            let f = (rng.gen_range(0..GRID), rng.gen_range(0..GRID));
+                            if !st.snake.contains(&f) {
+                                st.food = f;
+                                break;
+                            }
+                        }
+                    } else {
+                        // Remove tail.
+                        st.snake.pop();
+                    }
+                }
+
+                // Redraw with updated state.
+                draw(&state.borrow());
+            });
+
+            // Cleanup interval on component unmount.
+            move || drop(interval)
+        });
     }
 
     html! {

@@ -2,7 +2,7 @@ use axum::extract::ws::Message;
 use axum::extract::{ws::WebSocketUpgrade, Extension};
 use axum::response::IntoResponse;
 use axum::routing::{get, get_service};
-use axum::{Router, extract::ws::WebSocket};
+use axum::{extract::ws::WebSocket, Router};
 use tower_http::services::{ServeDir, ServeFile};
 
 pub fn build_router(static_dir: &str) -> Router {
@@ -63,4 +63,3 @@ async fn handle_socket(mut socket: WebSocket, tx: tokio::sync::broadcast::Sender
         }
     }
 }
-
