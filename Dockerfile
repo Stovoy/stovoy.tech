@@ -107,6 +107,23 @@ COPY --from=workspace-builder /app/target/release/stovoy-tech-axum /usr/bin/stov
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/stovoy-tech"]
 
+FROM rust:1-alpine AS backend-dev
+WORKDIR /workspace
+
+ARG CARGO_HOME=/usr/local/cargo
+ENV CARGO_HOME=${CARGO_HOME} CARGO_TARGET_DIR=/workspace/target
+
+RUN apk add --no-cache musl-dev openssl-dev pkgconfig build-base git && \
+    cargo install cargo-watch --locked && \
+    rustup target add wasm32-unknown-unknown
+
+COPY --from=chef-cook /app/target /workspace/target
+COPY . .
+
+EXPOSE 8080
+
+CMD ["cargo", "watch", "-x", "run -p stovoy-tech-backend-axum"]
+
 
 ################################################################################
 # Stage 5 – front-end development image                                        #

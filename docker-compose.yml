@@ -4,13 +4,12 @@ services:
   backend:
     build:
       context: .
-      target: runtime-backend
+      target: backend-dev
     image: stovoy-tech-dev-backend
     expose:
       - "8080"
     volumes:
-      - .:/app
-    command: ["/usr/bin/stovoy-tech"]
+      - .:/workspace
 
   frontend:
     build:
