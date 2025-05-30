@@ -4,7 +4,7 @@ use tower::util::ServiceExt;
 
 #[tokio::test]
 async fn healthz_ok() {
-    let app = stovoy_tech_backend_axum::build_router("dist");
+    let app = stovoy_dev_backend_axum::build_router("dist");
     let response = app
         .oneshot(
             Request::builder()

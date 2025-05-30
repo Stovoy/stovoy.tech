@@ -8,7 +8,7 @@ async fn spawn_app() -> SocketAddr {
     let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
 
-    let app = stovoy_tech_backend_axum::build_router("dist");
+    let app = stovoy_dev_backend_axum::build_router("dist");
 
     tokio::spawn(async move {
         axum::serve(listener, app).await.unwrap();

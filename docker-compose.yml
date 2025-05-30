@@ -8,6 +8,8 @@ services:
       - "8080"
     volumes:
       - .:/workspace
+      - cargo-git:/usr/local/cargo/git
+      - cargo-registry:/usr/local/cargo/registry
 
   frontend:
     build:
@@ -16,6 +18,9 @@ services:
     working_dir: /workspace
     volumes:
       - .:/workspace
+
+      - cargo-git:/usr/local/cargo/git
+      - cargo-registry:/usr/local/cargo/registry
     expose:
       - "8081"
     command: [
@@ -36,3 +41,7 @@ services:
       - frontend
     volumes:
       - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
+
+volumes:
+  cargo-git:
+  cargo-registry:

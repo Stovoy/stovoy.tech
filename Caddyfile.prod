@@ -7,3 +7,7 @@ stovoy.dev, www.stovoy.dev {
     root * /site
     file_server
 }
+
+stovoy.tech, www.stovoy.tech {
+    redir https://stovoy.dev{uri}
+}

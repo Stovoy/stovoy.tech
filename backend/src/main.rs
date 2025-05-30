@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 
-use stovoy_tech_backend_axum::build_router;
+use stovoy_dev_backend_axum::build_router;
 use tokio::signal;
 use tracing::info;
 
