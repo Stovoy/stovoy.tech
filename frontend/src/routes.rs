@@ -6,8 +6,6 @@ use yew_router::prelude::*;
 pub enum Route {
     #[at("/")]
     Home,
-    #[at("/game/arena")]
-    Arena,
     #[at("/game/snake")]
     Snake,
     #[not_found]

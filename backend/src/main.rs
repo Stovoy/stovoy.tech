@@ -38,7 +38,22 @@ impl Settings {
 async fn main() -> anyhow::Result<()> {
     let settings = Settings::load()?;
 
-    let app = build_router(&settings.static_dir);
+    let static_dir = {
+        use std::path::{Path, PathBuf};
+        let dir = Path::new(&settings.static_dir);
+        let absolute: PathBuf = if dir.is_absolute() {
+            dir.to_path_buf()
+        } else {
+            let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+            base.join(dir)
+        };
+        let canonical = absolute
+            .canonicalize()
+            .unwrap_or_else(|_| absolute.clone());
+        canonical.to_string_lossy().into_owned()
+    };
+
+    let app = build_router(&static_dir);
 
     let addr: SocketAddr = settings.bind.parse()?;
 

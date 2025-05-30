@@ -1,3 +1,7 @@
+{
+    grace_period 5s
+}
+
 stovoy.dev, www.stovoy.dev {
     encode zstd gzip
 
@@ -5,6 +9,10 @@ stovoy.dev, www.stovoy.dev {
     reverse_proxy @api backend:8080
 
     root * /site
+
+    @spa not path /api/* /healthz
+    try_files @spa {path} {path}/ /index.html
+
     file_server
 }
 

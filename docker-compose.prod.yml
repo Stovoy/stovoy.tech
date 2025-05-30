@@ -1,14 +1,17 @@
 services:
   backend:
     image: ghcr.io/stovoy/stovoy-dev-backend:latest
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     restart: unless-stopped
     expose:
       - "8080"
 
   caddy:
-    build:
-      context: .
-      target: caddy
+    image: ghcr.io/stovoy/stovoy-dev-site:latest
     restart: unless-stopped
     ports:
       - "80:80"

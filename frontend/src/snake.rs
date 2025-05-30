@@ -94,7 +94,7 @@ pub fn snake_game() -> Html {
                 .dyn_into()
                 .unwrap();
 
-            let mut draw = move |st: &GameState| {
+            let draw = move |st: &GameState| {
                 context.set_fill_style(&wasm_bindgen::JsValue::from_str("#f3f4f6"));
                 context.fill_rect(0.0, 0.0, CANVAS as f64, CANVAS as f64);
 

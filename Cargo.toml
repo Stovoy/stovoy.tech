@@ -1,18 +1,12 @@
 [workspace]
-# Use edition 2021 resolver for more correct dependency unification
 resolver = "2"
-# The root acts as the backend package *and* workspace root.
-# We'll re‑add the frontend WASM crate once it is migrated to Trunk/Yew.
-# Legacy Actix backend removed – only Axum backend and frontend remain.
 members = [
-    "backend",   # Axum backend
-    "frontend"   # Yew frontend (wasm32)
+    "backend",
+    "frontend"
 ]
 
-# Build only backend crate on default target; frontend compiled via Trunk.
 default-members = [
     "backend"
 ]
-# Temporary: keep shared workspace edition setting.
 [workspace.package]
 edition = "2021"

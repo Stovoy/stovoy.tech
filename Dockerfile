@@ -98,9 +98,13 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
 ################################################################################
 # Stage 4 – runtime image for back-end                                         #
 ################################################################################
-FROM gcr.io/distroless/cc-debian12 AS runtime-backend
+FROM alpine:3.19 AS runtime-backend
 
 WORKDIR /app
+
+# Minimal package set to support Docker health checks via HTTP.
+# ca-certificates enables TLS if the health endpoint is ever served over HTTPS.
+RUN apk add --no-cache curl ca-certificates
 
 COPY --from=workspace-builder /app/target/release/stovoy-dev-axum /usr/bin/stovoy-dev
 

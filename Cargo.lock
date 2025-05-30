@@ -1754,6 +1754,7 @@ dependencies = [
  "futures-util",
  "gloo 0.11.0",
  "gloo-net 0.4.0",
+ "gloo-timers 0.3.0",
  "js-sys",
  "rand 0.8.5",
  "serde",
