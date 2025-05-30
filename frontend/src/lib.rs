@@ -1,6 +1,3 @@
-// Compile frontend only for the browser (wasm32 target). Building on the host
-// is skipped, avoiding extra dependencies in CLI/CI builds.
-
 #![cfg(target_arch = "wasm32")]
 
 use wasm_bindgen::prelude::*;

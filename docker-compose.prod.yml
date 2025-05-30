@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   backend:
-    image: ghcr.io/your-org/stovoy-tech-backend:latest
+    image: ghcr.io/Stovoy/stovoy-dev-backend:latest
     restart: unless-stopped
     expose:
       - "8080"

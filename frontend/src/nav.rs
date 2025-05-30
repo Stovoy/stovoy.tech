@@ -7,10 +7,6 @@ use yew_router::prelude::use_navigator;
 #[function_component(Navbar)]
 pub fn navbar() -> Html {
     let open = use_state(|| false);
-    // Obtain the navigation handle and make a small helper that clones the
-    // handle each time so that we do not move it into multiple callbacks –
-    // this eliminates the previous `use of moved value` and `not Copy`
-    // compilation errors.
     let navigator = use_navigator().unwrap();
 
     let make_link_cb = move |route: Route, open: UseStateHandle<bool>| {

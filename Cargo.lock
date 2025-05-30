@@ -1727,7 +1727,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "stovoy-tech-backend-axum"
+name = "stovoy-dev-backend-axum"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -1748,7 +1748,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "stovoy-tech-frontend"
+name = "stovoy-dev-frontend"
 version = "0.1.0"
 dependencies = [
  "futures-util",

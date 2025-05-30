@@ -1,24 +1,20 @@
-//! Dark‑mode preference utility.
-
 #![cfg(target_arch = "wasm32")]
 
 use wasm_bindgen::JsCast;
 use web_sys::{window, HtmlElement, Storage};
 
-const STORAGE_KEY: &str = "theme"; // "dark" / "light"
+const STORAGE_KEY: &str = "theme";
 
 pub fn get_storage() -> Option<Storage> {
     window()?.local_storage().ok().flatten()
 }
 
 pub fn current_pref() -> bool {
-    // true = dark, false = light
     if let Some(storage) = get_storage() {
         if let Ok(Some(val)) = storage.get_item(STORAGE_KEY) {
             return val == "dark";
         }
     }
-    // Fallback to system preference
     window()
         .and_then(|w| w.match_media("(prefers-color-scheme: dark)").ok().flatten())
         .map(|mq| mq.matches())

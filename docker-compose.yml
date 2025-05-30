@@ -3,7 +3,7 @@ services:
     build:
       context: .
       target: backend-dev
-    image: stovoy-tech-dev-backend
+    image: stovoy-dev-backend
     expose:
       - "8080"
     volumes:

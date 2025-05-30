@@ -1,13 +1,9 @@
-# Production Caddyfile for stovoy.dev – automatic HTTPS via Let's Encrypt
-
 stovoy.dev, www.stovoy.dev {
     encode zstd gzip
 
-    # Redirect legacy healthz route
     @api path /api/* /healthz
     reverse_proxy @api backend:8080
 
-    # Serve static files built by Trunk (copied during container build)
     root * /site
     file_server
 }

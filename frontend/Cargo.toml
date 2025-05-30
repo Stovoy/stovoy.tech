@@ -1,5 +1,5 @@
 [package]
-name = "stovoy-tech-frontend"
+name = "stovoy-dev-frontend"
 version = "0.1.0"
 edition = "2021"
 
@@ -21,12 +21,10 @@ web-sys = { version = "0.3", features = [
     "DomTokenList",
     "MediaQueryList",
 
-    # Canvas for the snake game
     "CanvasRenderingContext2d",
     "HtmlCanvasElement",
 ] }
 
-# JS bindings miscellaneous utilities (Date used for color animation)
 js-sys = "0.3"
 wasm-bindgen-futures = "0.4"
 rand = "0.8"

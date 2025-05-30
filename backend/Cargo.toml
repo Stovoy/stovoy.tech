@@ -1,5 +1,5 @@
 [package]
-name = "stovoy-tech-backend-axum"
+name = "stovoy-dev-backend-axum"
 version = "0.1.0"
 edition = "2021"
 
@@ -29,5 +29,5 @@ futures-util = "0.3"
 
 
 [[bin]]
-name = "stovoy-tech-axum"
+name = "stovoy-dev-axum"
 path = "src/main.rs"

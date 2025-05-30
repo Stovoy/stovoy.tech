@@ -1,5 +1,5 @@
-/target
 **/*.rs.bk
 .cargo-cache/
 .idea/
 dist/
+target/

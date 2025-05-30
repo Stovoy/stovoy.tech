@@ -27,7 +27,7 @@ jobs:
         run: cargo fmt --all -- --check
 
       - name: Clippy
-        run: cargo clippy --workspace --all-targets --exclude stovoy-tech-frontend -- -D warnings
+        run: cargo clippy --workspace --all-targets --exclude stovoy-dev-frontend -- -D warnings
 
       - name: Tests
-        run: cargo test --workspace --all-targets --exclude stovoy-tech-frontend
+        run: cargo test --workspace --all-targets --exclude stovoy-dev-frontend

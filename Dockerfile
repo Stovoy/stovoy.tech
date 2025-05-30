@@ -68,7 +68,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
     cargo chef cook --release --recipe-path recipe.json \
         --target wasm32-unknown-unknown \
-        --package stovoy-tech-frontend
+        --package stovoy-dev-frontend
 
 
 ################################################################################
@@ -92,7 +92,7 @@ COPY . .
 # Build the back-end binary.
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
-    cargo build --release -p stovoy-tech-backend-axum
+    cargo build --release -p stovoy-dev-backend-axum
 
 
 ################################################################################
@@ -102,10 +102,10 @@ FROM gcr.io/distroless/cc-debian12 AS runtime-backend
 
 WORKDIR /app
 
-COPY --from=workspace-builder /app/target/release/stovoy-tech-axum /usr/bin/stovoy-tech
+COPY --from=workspace-builder /app/target/release/stovoy-dev-axum /usr/bin/stovoy-dev
 
 EXPOSE 8080
-ENTRYPOINT ["/usr/bin/stovoy-tech"]
+ENTRYPOINT ["/usr/bin/stovoy-dev"]
 
 FROM rust:1-alpine AS backend-dev
 WORKDIR /workspace
@@ -122,7 +122,7 @@ COPY . .
 
 EXPOSE 8080
 
-CMD ["cargo", "watch", "-x", "run -p stovoy-tech-backend-axum"]
+CMD ["cargo", "watch", "-x", "run -p stovoy-dev-backend-axum"]
 
 
 ################################################################################

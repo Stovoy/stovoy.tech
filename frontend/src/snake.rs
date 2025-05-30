@@ -6,14 +6,10 @@ use wasm_bindgen::JsCast;
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 use yew::prelude::*;
 
-/// Size of the logical board (cells per axis).
 const GRID: i32 = 20;
-/// Pixel size of each cell.
 const CELL: i32 = 20;
-/// Width / height of the canvas in pixels.
 const CANVAS: i32 = GRID * CELL;
 
-/// Direction the snake is currently heading.
 #[derive(Copy, Clone, PartialEq)]
 enum Direction {
     Up,
@@ -33,16 +29,10 @@ impl Direction {
     }
 }
 
-/// Simple fully‑client‑side snake game rendered to a `<canvas>` element.
 #[function_component(SnakeGame)]
 pub fn snake_game() -> Html {
-    // Canvas reference so we can access the 2D context.
     let canvas_ref: NodeRef = use_node_ref();
 
-    // Mutable game state stored behind `use_mut_ref` so the interval can mutate
-    // it without triggering a re‑render on every frame. A render is only
-    // needed when the component first mounts; drawing happens directly to the
-    // canvas afterwards.
     #[derive(Clone)]
     struct GameState {
         snake: Vec<(i32, i32)>,
@@ -60,8 +50,6 @@ pub fn snake_game() -> Html {
         alive: true,
     });
 
-    // Key handling – updates `next_direction` so the snake turns at most once
-    // per tick and never directly reverses.
     {
         let state = state.clone();
         use_effect(move || {
@@ -78,7 +66,6 @@ pub fn snake_game() -> Html {
                     };
                     if let Some(dir) = new_direction {
                         let mut st = state.borrow_mut();
-                        // Prevent reversing directly into yourself.
                         let opposite = match st.direction {
                             Direction::Up => Direction::Down,
                             Direction::Down => Direction::Up,
@@ -90,17 +77,14 @@ pub fn snake_game() -> Html {
                         }
                     }
                 });
-            // Cleanup listener when component unmounts.
             move || drop(listener)
         });
     }
 
-    // Main game loop – 10 FPS.
     {
         let state = state.clone();
         let canvas_ref = canvas_ref.clone();
         use_effect_with((), move |_| {
-            // Acquire 2d context once.
             let context: CanvasRenderingContext2d = canvas_ref
                 .cast::<HtmlCanvasElement>()
                 .expect("canvas not mounted yet")
@@ -110,13 +94,10 @@ pub fn snake_game() -> Html {
                 .dyn_into()
                 .unwrap();
 
-            // Helper to (re)draw the entire board.
             let mut draw = move |st: &GameState| {
-                // Clear background.
                 context.set_fill_style(&wasm_bindgen::JsValue::from_str("#f3f4f6"));
                 context.fill_rect(0.0, 0.0, CANVAS as f64, CANVAS as f64);
 
-                // Draw food.
                 context.set_fill_style(&wasm_bindgen::JsValue::from_str("tomato"));
                 context.fill_rect(
                     (st.food.0 * CELL) as f64,
@@ -125,7 +106,6 @@ pub fn snake_game() -> Html {
                     CELL as f64,
                 );
 
-                // Draw snake – color‑cycle for extra ✨.
                 let (r, g, b) = {
                     let t = js_sys::Date::now() as f64 / 100.0;
                     (
@@ -147,15 +127,12 @@ pub fn snake_game() -> Html {
                 }
             };
 
-            // Initial draw.
             draw(&state.borrow());
 
-            // Advance the simulation at a fixed interval.
             let interval = Interval::new(100, move || {
                 {
                     let mut st = state.borrow_mut();
                     if !st.alive {
-                        // Reset after death.
                         *st = GameState {
                             snake: vec![(GRID / 2, GRID / 2)],
                             direction: Direction::Right,
@@ -174,13 +151,11 @@ pub fn snake_game() -> Html {
                     new_head.0 += dx;
                     new_head.1 += dy;
 
-                    // Collision with walls.
                     if new_head.0 < 0 || new_head.0 >= GRID || new_head.1 < 0 || new_head.1 >= GRID
                     {
                         st.alive = false;
                     }
 
-                    // Collision with self.
                     if st.snake.contains(&new_head) {
                         st.alive = false;
                     }
@@ -189,10 +164,8 @@ pub fn snake_game() -> Html {
                         return;
                     }
 
-                    // Move.
                     st.snake.insert(0, new_head);
                     if new_head == st.food {
-                        // Spawn new food.
                         let mut rng = rand::thread_rng();
                         loop {
                             let f = (rng.gen_range(0..GRID), rng.gen_range(0..GRID));
@@ -202,16 +175,13 @@ pub fn snake_game() -> Html {
                             }
                         }
                     } else {
-                        // Remove tail.
                         st.snake.pop();
                     }
                 }
 
-                // Redraw with updated state.
                 draw(&state.borrow());
             });
 
-            // Cleanup interval on component unmount.
             move || drop(interval)
         });
     }
