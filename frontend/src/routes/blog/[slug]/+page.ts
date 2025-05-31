@@ -1,11 +1,24 @@
 import type { PageLoad } from './$types';
-import { error } from '@sveltejs/kit';
+import { toHtml, extractMeta } from '$lib/markdown';
 
-export const load: PageLoad = async ({ params, fetch }) => {
-  const res = await fetch(`/blog/${params.slug}/index.html`);
-  if (res.ok) {
-    const html = await res.text();
-    return { html };
+const markdownFiles = import.meta.glob('content/*.md', {
+  eager: true,
+  as: 'raw'
+}) as Record<string, string>;
+
+export const prerender = true;
+
+export const load: PageLoad = async ({ params }) => {
+  const slug = params.slug;
+  const entry = Object.entries(markdownFiles).find(([path]) => path.endsWith(`${slug}.md`));
+
+  if (!entry) {
+    throw new Error('Not found');
   }
-  throw error(404, 'Not found');
+
+  const [path, md] = entry;
+  const meta = extractMeta(md, path);
+  const html = toHtml(md);
+
+  return { html, meta, source: path };
 };

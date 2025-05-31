@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 8081 --host 0.0.0.0",
-    "build": "vite build",
+    "build": "rm -rf .svelte-kit && vite build",
     "preview": "vite preview --port 8081",
     "lint": "eslint src --ext .js,.ts,.svelte",
     "test": "playwright test"

@@ -1,5 +1,14 @@
 <script lang="ts">
-  export let data: { html: string };
+  import { onMount } from 'svelte';
+  import { registerCodeFiles } from '$lib/stores/codeFiles';
+
+  export let data: { html: string; source: string };
+
+  onMount(() => {
+    if (data.source) {
+      registerCodeFiles([data.source]);
+    }
+  });
 </script>
 
 <article class="prose max-w-none">

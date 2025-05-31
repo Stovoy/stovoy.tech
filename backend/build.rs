@@ -15,6 +15,9 @@ struct BlogMeta {
 }
 
 fn main() {
+    if std::env::var("SKIP_BLOG_BUILD").is_ok() {
+        return;
+    }
     let workspace_root = locate_workspace_root();
     let content_dir = workspace_root.join("content");
     if !content_dir.exists() {
@@ -59,8 +62,12 @@ fn main() {
     metas.sort_by(|a, b| b.date.cmp(&a.date));
 
     let meta_json = serde_json::to_string(&metas).unwrap();
+
     let mut meta_file = File::create(dist_blog_dir.join("blogs.json")).unwrap();
     meta_file.write_all(meta_json.as_bytes()).unwrap();
+
+    let mut root_meta_file = File::create(workspace_root.join("dist/blogs.json")).unwrap();
+    root_meta_file.write_all(meta_json.as_bytes()).unwrap();
 
     generate_rss(&workspace_root, &metas);
 }

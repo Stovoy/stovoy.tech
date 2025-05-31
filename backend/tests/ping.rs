@@ -1,10 +1,11 @@
 use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use tower::util::ServiceExt;
+use stovoy_dev_backend_axum::build_router;
 
 #[tokio::test]
 async fn ping_returns_pong() {
-    let app = stovoy_dev_backend_axum::build_router("dist");
+    let app = build_router("dist");
     let response = app
         .oneshot(
             Request::builder()

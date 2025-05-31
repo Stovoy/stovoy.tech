@@ -1322,6 +1322,7 @@ dependencies = [
  "chrono",
  "config",
  "futures-util",
+ "once_cell",
  "opentelemetry 0.20.0",
  "opentelemetry-stdout",
  "pulldown-cmark",

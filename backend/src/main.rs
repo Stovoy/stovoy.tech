@@ -59,7 +59,7 @@ async fn main() -> anyhow::Result<()> {
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
 
-    axum::serve(listener, app)
+    axum::serve(listener, app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
         .await?;
 

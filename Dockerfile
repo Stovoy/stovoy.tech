@@ -133,8 +133,8 @@ CMD ["pnpm","--dir","frontend","dev"]
 
 FROM frontend-dev-node AS site-build-svelte
 COPY frontend ./frontend
-RUN cd frontend && pnpm build
 COPY content ./content
+RUN cd frontend && rm -rf .svelte-kit && pnpm build
 RUN mkdir -p /site && \
     cp -r frontend/build/. /site
 

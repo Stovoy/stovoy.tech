@@ -7,6 +7,7 @@
     encode zstd gzip
 
     @api path /api/* /healthz /source/*
+    # blog pages are handled by the SvelteKit dev server; no special routing
     reverse_proxy @api backend:8080
 
     @frontend not path /api/* /healthz /source/*

@@ -17,6 +17,8 @@
   let cursorVisible = true;
   let showRest = false;
 
+  let blogs: { title: string; date: string; slug: string }[] = [];
+
   function segmentsForTyped(t: string) {
     const result: { text: string; class: string }[] = [];
     let offset = 0;
@@ -52,6 +54,21 @@
     const cursorInterval = setInterval(() => {
       cursorVisible = !cursorVisible;
     }, 400);
+
+    // Load blog metadata at build time – the glob is evaluated eagerly by Vite
+    const mods = import.meta.glob('content/*.md', { eager: true, as: 'raw' }) as Record<string, string>;
+    blogs = Object.entries(mods).map(([path, text]) => {
+      const lines = text.split(/\r?\n/);
+      let title = '';
+      let date = '';
+      for (const line of lines) {
+        if (!title && line.startsWith('#')) title = line.replace(/^#+/, '').trim();
+        if (!date && line.toLowerCase().startsWith('date:')) date = line.split(':', 2)[1]?.trim() ?? '';
+        if (title && date) break;
+      }
+      const slug = path.substring(path.lastIndexOf('/') + 1).replace(/\.md$/, '');
+      return { title, date, slug };
+    }).sort((a, b) => b.date.localeCompare(a.date));
 
     return () => {
       clearInterval(typingInterval);
@@ -90,6 +107,23 @@
         <li><a href="https://evades.io" target="_blank">Evades.io</a></li>
         <li><a href="/game/snake">Snake</a></li>
       </ul>
+
+      {#if blogs.length}
+        <div class="fake-command-line fake-command-line-spaced">
+          <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path">&nbsp;~&nbsp;</span><span class="cmd-prompt">$&nbsp;</span><span class="cmd-cmd">ls blog</span>
+        </div>
+        <ul class="links">
+          {#each blogs.slice(0, 5) as blog}
+            <li>
+              <a href={`/blog/${blog.slug}`}>{blog.title}</a>
+              <span class="opacity-60 text-sm">&nbsp;{blog.date}</span>
+            </li>
+          {/each}
+          {#if blogs.length > 5}
+            <li><a href="/blog" class="text-blue-600 dark:text-blue-400 hover:underline">See all posts</a></li>
+          {/if}
+        </ul>
+      {/if}
 
       <div class="fake-command-line fake-command-line-spaced">
         <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path">&nbsp;~&nbsp;</span><span class="cmd-prompt">$&nbsp;</span><span class="cmd-cmd">contact</span>

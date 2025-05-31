@@ -1,17 +1,7 @@
-# Exclude heavy build artefacts and local-only directories while still
-# including all Rust and frontend source code required to build the
-# workspace inside Docker.
-
-# ───────────────────────────────────────── Rust ─────────────
+.svelte-kit
+frontend/.svelte-kit
 target
-**/target
-
-# ───────────────────────────────────────── Node / JS ─────────
-**/node_modules
-
-# ───────────────────────────────────────── Misc  ─────────────
-.git
-*.swp
-*.swo
-*.tmp
-*.bak
+node_modules
+frontend/node_modules
+dist
+**/tmp
