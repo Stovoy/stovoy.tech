@@ -1,6 +1,4 @@
 <script lang="ts">
-  import CodeViewer from '$lib/components/CodeViewer.svelte';
-
   const examples = [
     'backend/src/lib.rs',
     'frontend/src/routes/+page.svelte',
@@ -11,7 +9,7 @@
 
 <h1 class="text-2xl font-bold mb-4">Source code viewer</h1>
 
-<p class="mb-4 opacity-80">Click any file below or append <code>#src=path/to/file.rs</code> to the URL, then click the button in the corner.</p>
+<p class="mb-4 opacity-80">Click any file below or append <code>#src=path/to/file.rs</code> to the URL, then click the View Code button.</p>
 
 <ul class="list-disc list-inside space-y-1">
   {#each examples as path}
@@ -20,5 +18,3 @@
     </li>
   {/each}
 </ul>
-
-<CodeViewer />

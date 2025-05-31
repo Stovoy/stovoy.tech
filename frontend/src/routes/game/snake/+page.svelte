@@ -1,5 +1,11 @@
 <script lang="ts">
   import SnakeGame from '$lib/components/SnakeGame.svelte';
+  import { registerCodeFiles } from '$lib/stores/codeFiles';
+
+  registerCodeFiles([
+    'frontend/src/routes/game/snake/+page.svelte',
+    'frontend/src/lib/components/SnakeGame.svelte'
+  ]);
 </script>
 
 <div class="back-button-container">

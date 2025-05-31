@@ -9,6 +9,9 @@ fn main() {
 
     let workspace_root = locate_workspace_root();
 
+    // Re-run build script if anything inside workspace_root changes
+    println!("cargo:rerun-if-changed={}", workspace_root.to_string_lossy());
+
     let mut entries = Vec::new();
 
     gather_files(&workspace_root, &mut entries);
@@ -25,13 +28,16 @@ fn main() {
     .unwrap();
     writeln!(file, "    let mut map = HashMap::new();").unwrap();
 
-    for (rel_path, abs_path) in entries {
+    for (rel_path, abs_path) in &entries {
         writeln!(
             file,
             "    map.insert({:?}, include_str!({:?}));",
             rel_path, abs_path
         )
         .unwrap();
+
+        // Instruct Cargo to rerun build script if the source file changes
+        println!("cargo:rerun-if-changed={}", abs_path);
     }
 
     writeln!(file, "    map").unwrap();
@@ -61,7 +67,10 @@ fn gather_files(root: &Path, entries: &mut Vec<(String, String)>) {
     {
         let path = entry.into_path();
         if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-            if matches!(ext, "rs" | "toml" | "css" | "html") {
+            if matches!(
+                ext,
+                "rs" | "toml" | "css" | "html" | "svelte" | "ts" | "js" | "json" | "md" | "cjs" | "c" | "cpp" | "h" | "hpp"
+            ) {
                 let abs = path.to_string_lossy().to_string();
                 let rel = path
                     .strip_prefix(root)

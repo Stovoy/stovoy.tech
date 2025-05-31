@@ -6,7 +6,7 @@
 :80 {
     encode zstd gzip
 
-    @api path /api/* /healthz
+    @api path /api/* /healthz /source/*
     reverse_proxy @api backend:8080
 
     @frontend not path /api/* /healthz

@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --rosewater: #f2d5cf;
   --flamingo: #eebebe;
@@ -265,4 +269,229 @@ h3 {
 
 .back-button:hover .back-arrow {
   transform: translateX(-2px);
+}
+
+/* Code Viewer Styles */
+.code-viewer-overlay {
+  backdrop-filter: blur(8px);
+  background: rgba(35, 38, 52, 0.85);
+  animation: fadeInOverlay 0.3s ease-out;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+.code-viewer-modal {
+  background: linear-gradient(135deg, 
+    rgba(48, 52, 70, 0.95) 0%, 
+    rgba(41, 44, 60, 0.95) 100%);
+  border: 1px solid var(--surface2);
+  box-shadow: 
+    0 25px 50px -12px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  animation: slideInModal 0.3s ease-out;
+}
+
+@keyframes slideInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.code-viewer-tabs {
+  background: rgba(47, 51, 68, 0.8);
+  border-bottom: 1px solid var(--surface2);
+  backdrop-filter: blur(4px);
+  padding: 0;
+  gap: 0;
+}
+
+.code-viewer-tab {
+  background: transparent;
+  border: none;
+  color: var(--subtext0);
+  padding: 12px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.2s ease;
+  position: relative;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+.code-viewer-tab:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+.code-viewer-tab.active {
+  background: linear-gradient(180deg, 
+    rgba(140, 170, 238, 0.15) 0%, 
+    rgba(140, 170, 238, 0.05) 100%);
+  color: var(--blue);
+  border-bottom: 2px solid var(--blue);
+}
+
+.code-viewer-content {
+  background: rgba(48, 52, 70, 0.6);
+  backdrop-filter: blur(2px);
+}
+
+.code-viewer-pre {
+  margin: 0;
+  background: transparent !important;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow: auto;
+  padding: 24px;
+}
+
+.code-viewer-code {
+  display: block;
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  background: transparent !important;
+}
+
+.code-viewer-button {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--sapphire) 100%);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 
+    0 4px 12px rgba(140, 170, 238, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+.code-viewer-button:hover {
+  background: linear-gradient(135deg, var(--sapphire) 0%, var(--sky) 100%);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 20px rgba(140, 170, 238, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+
+.code-viewer-close {
+  background: rgba(231, 130, 132, 0.2);
+  color: var(--red);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.code-viewer-close:hover {
+  background: rgba(231, 130, 132, 0.3);
+  transform: scale(1.05);
+}
+
+/* Override Prism.js theme with Catppuccin colors */
+pre[class*="language-"],
+code[class*="language-"] {
+  background: transparent !important;
+  color: var(--text) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* Prism.js Catppuccin Theme Override */
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: var(--overlay0) !important;
+}
+
+.token.punctuation {
+  color: var(--subtext0) !important;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
+  color: var(--peach) !important;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: var(--green) !important;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: var(--sky) !important;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: var(--mauve) !important;
+}
+
+.token.function,
+.token.class-name {
+  color: var(--blue) !important;
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: var(--flamingo) !important;
+}
+
+.token.important,
+.token.bold {
+  font-weight: bold !important;
+}
+
+.token.italic {
+  font-style: italic !important;
+}
+
+.token.entity {
+  cursor: help !important;
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { fade } from 'svelte/transition';
+  import { registerCodeFiles } from '$lib/stores/codeFiles';
 
   const commandSegments = [
     { text: 'stovoy', class: 'cmd-user' },
@@ -33,6 +34,7 @@
   let segments: { text: string; class: string }[] = [];
 
   onMount(() => {
+    registerCodeFiles(['frontend/src/routes/+page.svelte']);
     let index = 0;
     const typingInterval = setInterval(() => {
       if (index < commandStr.length) {
@@ -73,7 +75,7 @@
       <p>Hi. I'm Steve, but you can call me Stovoy - 20+ years code wizard, creator of Evades.io, and Safety Engineer @ OpenAI</p>
 
       <div class="fake-command-line">
-        <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path"> ~ </span><span class="cmd-prompt">$ </span><span class="cmd-cmd">cat interests.md</span>
+        <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path">&nbsp;~&nbsp;</span><span class="cmd-prompt">$&nbsp;</span><span class="cmd-cmd">cat interests.md</span>
       </div>
       <ul>
         <li>Rust | Godot | Optimizations</li>
@@ -82,7 +84,7 @@
       </ul>
 
       <div class="fake-command-line fake-command-line-spaced">
-        <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path"> ~ </span><span class="cmd-prompt">$ </span><span class="cmd-cmd">ls projects</span>
+        <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path">&nbsp;~&nbsp;</span><span class="cmd-prompt">$&nbsp;</span><span class="cmd-cmd">ls projects</span>
       </div>
       <ul class="links">
         <li><a href="https://evades.io" target="_blank">Evades.io</a></li>
@@ -90,7 +92,7 @@
       </ul>
 
       <div class="fake-command-line fake-command-line-spaced">
-        <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path"> ~ </span><span class="cmd-prompt">$ </span><span class="cmd-cmd">contact</span>
+        <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path">&nbsp;~&nbsp;</span><span class="cmd-prompt">$&nbsp;</span><span class="cmd-cmd">contact</span>
       </div>
       <ul class="links">
         <li><a href="https://github.com/stovoy" target="_blank">GitHub</a></li>

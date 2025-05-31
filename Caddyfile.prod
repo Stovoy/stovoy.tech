@@ -5,7 +5,7 @@
 stovoy.dev, www.stovoy.dev {
     encode zstd gzip
 
-    @api path /api/* /healthz
+    @api path /api/* /healthz /source/*
     reverse_proxy @api backend:8080
 
     root * /site
