@@ -25,6 +25,11 @@
   --base: #303446;
   --mantle: #292c3c;
   --crust: #232634;
+  
+  --game-canvas-bg: #f3f4f6;
+  --shadow-dark: rgba(0, 0, 0, 0.4);
+  --shadow-light: rgba(0, 0, 0, 0.2);
+  --shadow-medium: rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -163,3 +168,101 @@ h3 {
 .cmd-path { color: var(--yellow); }
 .cmd-prompt { color: var(--green); }
 .cmd-cmd { color: var(--maroon); }
+
+/* Utility classes for replacing inline styles */
+.fake-command-line-spaced {
+  margin-top: 1rem;
+}
+
+/* Super Snake game styles */
+.game-container {
+  position: relative;
+  width: fit-content;
+  height: fit-content;
+  margin: 0 auto;
+  background: none;
+  padding: 0;
+  display: block;
+}
+
+.game-canvas {
+  border: 3px solid var(--surface2);
+  border-radius: 10px;
+  box-shadow: 0 0 20px var(--sky), 0 0 40px var(--sky), inset 0 0 10px var(--shadow-dark);
+  background: linear-gradient(45deg, var(--base), var(--mantle));
+  cursor: none;
+  display: block;
+}
+
+.game-canvas:hover {
+  box-shadow:
+    0 0 30px var(--sky),
+    0 0 60px var(--sky),
+    inset 0 0 10px var(--shadow-dark);
+}
+
+.play-btn-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  padding: 2rem 4rem;
+  border: none;
+  border-radius: 2rem;
+  background: linear-gradient(90deg, var(--sky), var(--blue) 60%, var(--sky));
+  color: var(--text);
+  font-family: monospace;
+  font-weight: bold;
+  box-shadow: 0 0 40px var(--sky), 0 0 10px var(--surface2);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  z-index: 10;
+}
+.play-btn-center:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: 0 0 60px var(--sky), 0 0 20px var(--surface2);
+}
+
+.play-overlay, .play-btn {
+  display: none !important;
+}
+
+/* Back button styles */
+.back-button-container {
+  margin-bottom: 1.5rem;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--surface0);
+  border: 1px solid var(--surface2);
+  border-radius: 0.25rem;
+  color: var(--text);
+  text-decoration: none;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 1px 3px var(--shadow-light);
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: var(--surface1);
+  border-color: var(--overlay0);
+  color: var(--flamingo);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px var(--shadow-medium);
+}
+
+.back-arrow {
+  font-size: 1.1rem;
+  color: var(--green);
+}
+
+.back-button:hover .back-arrow {
+  transform: translateX(-2px);
+}

@@ -81,7 +81,7 @@
         <li>Automate. Everything.</li>
       </ul>
 
-      <div class="fake-command-line" style="margin-top:1rem;">
+      <div class="fake-command-line fake-command-line-spaced">
         <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path"> ~ </span><span class="cmd-prompt">$ </span><span class="cmd-cmd">ls projects</span>
       </div>
       <ul class="links">
@@ -89,7 +89,7 @@
         <li><a href="/game/snake">Snake</a></li>
       </ul>
 
-      <div class="fake-command-line" style="margin-top:1rem;">
+      <div class="fake-command-line fake-command-line-spaced">
         <span class="cmd-user">stovoy</span><span class="cmd-host">@devbox</span><span class="cmd-path"> ~ </span><span class="cmd-prompt">$ </span><span class="cmd-cmd">contact</span>
       </div>
       <ul class="links">
@@ -101,7 +101,3 @@
     </div>
   {/if}
 </div>
-
-<style>
-  .links a:hover { text-decoration: underline; }
-</style>
