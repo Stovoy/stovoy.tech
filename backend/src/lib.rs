@@ -30,5 +30,3 @@ pub async fn source_handler(Path(path): Path<String>) -> impl IntoResponse {
         axum::http::StatusCode::NOT_FOUND.into_response()
     }
 }
-
-// Arena websocket functionality removed.

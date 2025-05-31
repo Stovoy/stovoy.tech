@@ -10,8 +10,11 @@ stovoy.dev, www.stovoy.dev {
 
     root * /site
 
-    @spa not path /api/* /healthz
-    try_files @spa {path} {path}/ /index.html
+    @spa not path /api/* /healthz /source/*
+
+    handle @spa {
+        try_files {path} {path}/ /index.html
+    }
 
     file_server
 }

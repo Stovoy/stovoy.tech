@@ -9,7 +9,6 @@ fn main() {
 
     let workspace_root = locate_workspace_root();
 
-    // Re-run build script if anything inside workspace_root changes
     println!("cargo:rerun-if-changed={}", workspace_root.to_string_lossy());
 
     let mut entries = Vec::new();
@@ -36,7 +35,6 @@ fn main() {
         )
         .unwrap();
 
-        // Instruct Cargo to rerun build script if the source file changes
         println!("cargo:rerun-if-changed={}", abs_path);
     }
 
@@ -69,7 +67,7 @@ fn gather_files(root: &Path, entries: &mut Vec<(String, String)>) {
         if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
             if matches!(
                 ext,
-                "rs" | "toml" | "css" | "html" | "svelte" | "ts" | "js" | "json" | "md" | "cjs" | "c" | "cpp" | "h" | "hpp"
+                "rs" | "toml" | "css" | "svelte" | "ts" | "js" | "json" | "md" | "cjs" | "c" | "cpp" | "h" | "hpp"
             ) {
                 let abs = path.to_string_lossy().to_string();
                 let rel = path
