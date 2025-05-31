@@ -1,6 +1,5 @@
 [toolchain]
 channel = "stable"
 components = ["rustfmt", "clippy"]
-targets = ["wasm32-unknown-unknown"]
 
 # For reproducibility; update this every milestone if we need a newer compiler.

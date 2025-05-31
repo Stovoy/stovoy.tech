@@ -24,16 +24,15 @@ ENV CARGO_HOME=${CARGO_HOME}
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
     apk add --no-cache musl-dev openssl-dev pkgconfig build-base git && \
-    cargo install cargo-chef --locked && \
-    cargo install trunk --locked
+    cargo install cargo-chef --locked
 
 # Copy workspace manifests only.
-COPY Cargo.toml Cargo.lock Trunk.toml ./
+COPY Cargo.toml Cargo.lock ./
 COPY backend/Cargo.toml backend/Cargo.toml
-COPY frontend/Cargo.toml frontend/Cargo.toml
+COPY stovoy_source/Cargo.toml stovoy_source/Cargo.toml
 
 # Minimal crate root so `cargo metadata` succeeds without full source.
-RUN mkdir -p frontend/src && echo "pub fn _dummy() {}" > frontend/src/lib.rs
+RUN mkdir -p stovoy_source/src && echo "pub fn _dummy() {}" > stovoy_source/src/lib.rs
 
 # Generate deterministic dependency recipe.
 RUN cargo chef prepare --recipe-path recipe.json
@@ -52,9 +51,7 @@ ENV CARGO_HOME=${CARGO_HOME}
 RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
     apk add --no-cache musl-dev openssl-dev pkgconfig build-base git && \
-    cargo install cargo-chef --locked && \
-    cargo install trunk --locked && \
-    rustup target add wasm32-unknown-unknown
+    cargo install cargo-chef --locked
 
 COPY --from=chef-planner /app/recipe.json ./recipe.json
 
@@ -63,12 +60,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
     cargo chef cook --release --recipe-path recipe.json
 
-# Compile dependency graph for WebAssembly target (front-end).
-RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
-    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
-    cargo chef cook --release --recipe-path recipe.json \
-        --target wasm32-unknown-unknown \
-        --package stovoy-dev-frontend
+
 
 
 ################################################################################
@@ -129,55 +121,25 @@ EXPOSE 8080
 CMD ["cargo", "watch", "-x", "run -p stovoy-dev-backend-axum"]
 
 
-################################################################################
-# Stage 5 – front-end development image                                        #
-################################################################################
-#
-# ---------------- Front-end development image -------------------------------
-#
-
-FROM rust:1-alpine AS frontend-dev
-
-ENV CARGO_TARGET_DIR=/app/target
-
+FROM node:20-bullseye-slim AS frontend-dev-node
 WORKDIR /workspace
-
-ARG CARGO_HOME=/usr/local/cargo
-ENV CARGO_HOME=${CARGO_HOME}
-
-RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
-    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
-    apk add --no-cache musl-dev openssl-dev pkgconfig build-base git && \
-    cargo install trunk --locked && \
-    rustup target add wasm32-unknown-unknown
-
-# Reuse cached build artefacts so that `trunk serve` only recompiles changed crates.
-COPY --from=chef-cook /app/target /app/target
-
-# Full workspace source (overwritten by volume mount in docker-compose during dev).
-COPY . .
-
+ENV PNPM_HOME=/usr/local/share/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN npm install -g pnpm
+COPY frontend/package.json ./frontend/
+RUN cd frontend && pnpm install
 EXPOSE 8081
+CMD ["pnpm","--dir","frontend","dev"]
 
-CMD ["trunk", "serve", "--watch", ".", "--config", "Trunk.toml", "--public-url", "/", "--address", "0.0.0.0"]
-
-
-################################################################################
-# Stage 6 – static site build                                                  #
-################################################################################
-FROM frontend-dev AS site-build
-
-RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
-    --mount=type=cache,target=/usr/local/cargo/git,sharing=locked \
-    trunk build --release --dist /site --public-url /
+FROM frontend-dev-node AS site-build-svelte
+COPY frontend ./frontend
+RUN cd frontend && pnpm build
+COPY content ./content
+RUN mkdir -p /site && \
+    cp -r frontend/build/. /site
 
 
-################################################################################
-# Stage 7 – production Caddy image                                             #
-################################################################################
 FROM caddy:2-alpine AS caddy
 
 COPY Caddyfile.prod /etc/caddy/Caddyfile
-COPY --from=site-build /site /site
-
-# Caddy listens on 80/443 by default.
+COPY --from=site-build-svelte /site /site

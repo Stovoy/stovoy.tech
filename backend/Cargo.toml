@@ -2,6 +2,7 @@
 name = "stovoy-dev-backend-axum"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [dependencies]
 axum = { version = "0.7", features = ["ws", "macros"] }
@@ -21,6 +22,15 @@ tower-http = { version = "0.5", features = ["fs"] }
 
 # JSON serialization
 serde_json = "1.0"
+
+stovoy_source = { path = "../stovoy_source" }
+
+[build-dependencies]
+pulldown-cmark = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rss = "2"
+chrono = { version = "0.4" }
 
 [dev-dependencies]
 tower = "0.5"

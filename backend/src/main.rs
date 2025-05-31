@@ -47,9 +47,7 @@ async fn main() -> anyhow::Result<()> {
             let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
             base.join(dir)
         };
-        let canonical = absolute
-            .canonicalize()
-            .unwrap_or_else(|_| absolute.clone());
+        let canonical = absolute.canonicalize().unwrap_or_else(|_| absolute.clone());
         canonical.to_string_lossy().into_owned()
     };
 

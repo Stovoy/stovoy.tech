@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
     "backend",
-    "frontend"
+    "stovoy_source"
 ]
 
 default-members = [

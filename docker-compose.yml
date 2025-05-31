@@ -11,36 +11,28 @@ services:
       - cargo-git:/usr/local/cargo/git
       - cargo-registry:/usr/local/cargo/registry
 
-  frontend:
+  caddy:
     build:
       context: .
-      target: frontend-dev
-    working_dir: /workspace
-    volumes:
-      - .:/workspace
-
-      - cargo-git:/usr/local/cargo/git
-      - cargo-registry:/usr/local/cargo/registry
-    expose:
-      - "8081"
-    command: [
-      "trunk", "serve", 
-      "--watch", ".", 
-      "--config", "Trunk.toml", 
-      "--public-url", "/", 
-      "--address", "0.0.0.0"
-    ]
-
-  caddy:
-    image: caddy:2
+      target: caddy
     restart: unless-stopped
     ports:
       - "8080:80"
     depends_on:
       - backend
       - frontend
+    image: stovoy-dev-site
     volumes:
       - ./Caddyfile.dev:/etc/caddy/Caddyfile:ro
+
+  frontend:
+    build:
+      context: .
+      target: frontend-dev-node
+    expose:
+      - "8081"
+    volumes:
+      - .:/workspace
 
 volumes:
   cargo-git:

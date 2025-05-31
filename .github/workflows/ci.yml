@@ -31,3 +31,25 @@ jobs:
 
       - name: Tests
         run: cargo test --workspace --all-targets --exclude stovoy-dev-frontend
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Install Trunk and wasm target
+        run: |
+          cargo install trunk --locked
+          rustup target add wasm32-unknown-unknown
+
+      - name: Build static site
+        run: trunk build --release --dist dist --public-url /
+
+      - name: Install brotli
+        run: sudo apt-get update && sudo apt-get install -y brotli
+
+      - name: Brotli compress assets
+        run: |
+          find dist -type f \( -name '*.css' -o -name '*.js' -o -name '*.wasm' \) -exec brotli -f -q 11 {} \;
