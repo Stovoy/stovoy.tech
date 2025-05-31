@@ -9,7 +9,7 @@
   const FOOD_SIZE = 8;
 
   type Vector2 = { x: number; y: number };
-  type PowerUpType = 'speed' | 'slow' | 'grow' | 'shrink' | 'score';
+  type PowerUpType = 'speed' | 'grow' | 'magnet';
   
   interface SnakeSegment {
     x: number;
@@ -59,18 +59,15 @@
   
   // Game stats
   let score = 0;
-  let level = 1;
   let lives = 3;
   let gameRunning = true;
   let gameStarted = false;
   
   // Effects and timers
   let speedBoostTimer = 0;
-  let slowTimer = 0;
+  let magnetTimer = 0;
   let invulnerableTimer = 0;
   let cameraShake = 0;
-  let rainbowMode = false;
-  let rainbowTimer = 0;
   
   // Animation
   let gameTime = 0;
@@ -93,7 +90,6 @@
     powerUps = [];
     particles = [];
     score = 0;
-    level = 1;
     lives = 3;
     gameRunning = true;
     gameStarted = true;
@@ -117,7 +113,7 @@
   function spawnPowerUp() {
     if (powerUps.length >= 2) return; // Max 2 powerups at once
     
-    const types: PowerUpType[] = ['speed', 'slow', 'grow', 'shrink', 'score'];
+    const types: PowerUpType[] = ['speed', 'grow', 'magnet'];
     const margin = 50;
     const powerUp: PowerUp = {
       x: margin + Math.random() * (CANVAS_WIDTH - margin * 2),
@@ -176,7 +172,7 @@
     }
 
     // Move head at constant speed
-    const currentSpeed = MOVE_SPEED + (speedBoostTimer > 0 ? 3 : 0) + (slowTimer > 0 ? -2 : 0);
+    const currentSpeed = MOVE_SPEED + (speedBoostTimer > 0 ? 3 : 0);
     const head = snake[0];
     head.targetX += Math.cos(directionAngle) * currentSpeed;
     head.targetY += Math.sin(directionAngle) * currentSpeed;
@@ -232,7 +228,7 @@
 
   function eatFood(food: Food, index: number) {
     const points = food.type === 'golden' ? 50 : 10;
-    score += points * level;
+    score += points;
     
     // Add segments
     const segmentsToAdd = food.type === 'golden' ? 3 : 1;
@@ -257,10 +253,6 @@
     foods.splice(index, 1);
     spawnFood();
 
-    // Check level up
-    if (score >= level * 100) {
-      levelUp();
-    }
 
     // Random powerup spawn
     if (Math.random() < 0.3) {
@@ -275,11 +267,8 @@
       case 'speed':
         speedBoostTimer = 300;
         break;
-      case 'slow':
-        slowTimer = 200;
-        break;
       case 'grow':
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
           const tail = snake[snake.length - 1];
           snake.push({
             x: tail.x,
@@ -290,15 +279,8 @@
           });
         }
         break;
-      case 'shrink':
-        if (snake.length > 3) {
-          snake.splice(-2, 2);
-        }
-        break;
-      case 'score':
-        score += 100 * level;
-        rainbowMode = true;
-        rainbowTimer = 120;
+      case 'magnet':
+        magnetTimer = 300;
         break;
     }
 
@@ -341,19 +323,7 @@
     createParticles(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 20, '#ff0000');
   }
 
-  function levelUp() {
-    level++;
-    foods = [];
-    powerUps = [];
-    spawnFood();
-    spawnFood();
-    spawnPowerUp();
-    spawnPowerUp();
-    
-    cameraShake = 20;
-    createParticles(CANVAS_WIDTH / 2, 100, 30, '#ffff00');
-    soundPulse = 20;
-  }
+
 
   function gameOver() {
     gameRunning = false;
@@ -370,14 +340,10 @@
 
     // Update timers
     if (speedBoostTimer > 0) speedBoostTimer--;
-    if (slowTimer > 0) slowTimer--;
+    if (magnetTimer > 0) magnetTimer--;
     if (invulnerableTimer > 0) invulnerableTimer--;
     if (cameraShake > 0) cameraShake *= 0.9;
     if (soundPulse > 0) soundPulse--;
-    if (rainbowTimer > 0) {
-      rainbowTimer--;
-      if (rainbowTimer <= 0) rainbowMode = false;
-    }
 
     updateSnake(deltaTime);
 
@@ -394,6 +360,17 @@
     // Update foods
     foods.forEach(food => {
       food.pulse += 0.1;
+      if (magnetTimer > 0) {
+        const head = snake[0];
+        const dx = head.x - food.x;
+        const dy = head.y - food.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist > 0) {
+          const pull = Math.min(5, dist) * 0.1;
+          food.x += (dx / dist) * pull;
+          food.y += (dy / dist) * pull;
+        }
+      }
     });
 
     // Update powerups
@@ -456,10 +433,8 @@
       
       const colors = {
         speed: '#ff6b6b',
-        slow: '#4ecdc4',
         grow: '#45b7d1',
-        shrink: '#f9ca24',
-        score: '#f0932b'
+        magnet: '#e056fd'
       };
       
       const bounce = Math.sin(powerUp.timer) * 3;
@@ -477,7 +452,7 @@
       ctx.font = '12px monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const symbols = { speed: '⚡', slow: '🐌', grow: '+', shrink: '-', score: '★' };
+      const symbols = { speed: '⚡', grow: '+', magnet: '☄' };
       ctx.fillText(symbols[powerUp.type], powerUp.x, powerUp.y + bounce);
       ctx.restore();
     });
@@ -488,10 +463,7 @@
       const t = gameTime * 0.01;
       
       let color;
-      if (rainbowMode) {
-        const hue = (index * 30 + t * 50) % 360;
-        color = `hsl(${hue}, 70%, 60%)`;
-      } else if (invulnerableTimer > 0 && Math.floor(gameTime * 0.1) % 2) {
+      if (invulnerableTimer > 0 && Math.floor(gameTime * 0.1) % 2) {
         color = '#ffffff';
       } else {
         const baseHue = 120 + Math.sin(t + index * 0.5) * 30;
@@ -595,11 +567,10 @@
     ctx.font = 'bold 24px monospace';
     ctx.textAlign = 'left';
     ctx.fillText(`Score: ${score}`, 20, 30);
-    ctx.fillText(`Level: ${level}`, 20, 60);
-    ctx.fillText(`Lives: ${lives}`, 20, 90);
+    ctx.fillText(`Lives: ${lives}`, 20, 60);
 
     // Speed indicator
-    const speedText = speedBoostTimer > 0 ? 'SPEED BOOST!' : slowTimer > 0 ? 'SLOWED' : '';
+    const speedText = speedBoostTimer > 0 ? 'SPEED BOOST!' : '';
     if (speedText) {
       ctx.fillStyle = speedBoostTimer > 0 ? '#ff6b6b' : '#4ecdc4';
       ctx.font = 'bold 16px monospace';
@@ -607,13 +578,7 @@
       ctx.fillText(speedText, CANVAS_WIDTH / 2, 50);
     }
 
-    // Rainbow mode indicator
-    if (rainbowMode) {
-      ctx.fillStyle = `hsl(${gameTime * 0.5 % 360}, 100%, 70%)`;
-      ctx.font = 'bold 20px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('RAINBOW MODE!', CANVAS_WIDTH / 2, 80);
-    }
+
 
     // Game over screen
     if (!gameRunning) {
@@ -627,7 +592,7 @@
       
       ctx.font = 'bold 24px monospace';
       ctx.fillText(`Final Score: ${score}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
-      ctx.fillText(`Level Reached: ${level}`, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30);
+      
       
       ctx.font = '18px monospace';
       ctx.fillText('Press SPACE to restart', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 80);
