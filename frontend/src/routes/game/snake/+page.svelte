@@ -9,7 +9,7 @@
 </script>
 
 <div class="back-button-container">
-  <a href="/" class="back-button">
+  <a href="/?instant=1" class="back-button">
     <span class="back-arrow">←</span>
     <span>Back</span>
   </a>

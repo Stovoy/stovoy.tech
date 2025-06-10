@@ -20,31 +20,59 @@ export function toHtml(markdown: string): string {
 
     if (line.startsWith('# ')) {
       closeList();
-      html.push(`<h1>${escapeHtml(line.slice(2).trim())}</h1>`);
+      html.push(`<h1>${renderInline(line.slice(2).trim())}</h1>`);
     } else if (line.startsWith('## ')) {
       closeList();
-      html.push(`<h2>${escapeHtml(line.slice(3).trim())}</h2>`);
+      html.push(`<h2>${renderInline(line.slice(3).trim())}</h2>`);
     } else if (line.startsWith('### ')) {
       closeList();
-      html.push(`<h3>${escapeHtml(line.slice(4).trim())}</h3>`);
+      html.push(`<h3>${renderInline(line.slice(4).trim())}</h3>`);
     } else if (line.startsWith('- ') || line.startsWith('* ') || line.startsWith('• ')) {
       if (!inList) {
         html.push('<ul>');
         inList = true;
       }
-      html.push(`<li>${escapeHtml(line.slice(2).trim())}</li>`);
+      html.push(`<li>${renderInline(line.slice(2).trim())}</li>`);
     } else if (line.toLowerCase().startsWith('date:')) {
       const value = escapeHtml(line.slice(5).trim());
       html.push(`<p><em>${value}</em></p>`);
     } else {
       closeList();
-      html.push(`<p>${escapeHtml(line)}</p>`);
+      html.push(`<p>${renderInline(line)}</p>`);
     }
   }
 
   closeList();
 
   return html.join('');
+}
+
+function processFormatting(str: string): string {
+  let s = escapeHtml(str);
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/__(.+?)__/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/_(.+?)_/g, '<em>$1</em>');
+  return s;
+}
+
+function renderInline(text: string): string {
+  const linkRegex = /\[([^\]]+)\]\(([^\)]+)\)/g;
+  let result = '';
+  let lastIndex = 0;
+
+  for (const match of text.matchAll(linkRegex)) {
+    const index = match.index ?? 0;
+    const [full, label, url] = match;
+    result += processFormatting(text.slice(lastIndex, index));
+    result += `<a href="${escapeHtml(url)}">${processFormatting(label)}</a>`;
+    lastIndex = index + full.length;
+  }
+
+  result += processFormatting(text.slice(lastIndex));
+  return result;
 }
 
 function escapeHtml(str: string): string {
