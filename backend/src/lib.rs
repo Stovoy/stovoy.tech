@@ -28,8 +28,16 @@ pub async fn ping() -> axum::Json<serde_json::Value> {
     axum::Json(serde_json::json!({ "message": "pong" }))
 }
 
-pub async fn source_handler(Path(path): Path<String>) -> impl IntoResponse {
-    if let Some(content) = SOURCE_FILES.get(path.as_str()) {
+pub async fn source_handler(Path(raw_path): Path<String>) -> impl IntoResponse {
+    let sanitized_path = {
+        let segments = raw_path
+            .split('/')
+            .filter(|s| !s.is_empty() && *s != "..")
+            .collect::<Vec<_>>();
+        segments.join("/")
+    };
+
+    if let Some(content) = SOURCE_FILES.get(sanitized_path.as_str()) {
         ([("Content-Type", "text/plain; charset=utf-8")], *content).into_response()
     } else {
         axum::http::StatusCode::NOT_FOUND.into_response()

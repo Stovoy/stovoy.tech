@@ -17,7 +17,23 @@
   let cursorVisible = true;
   let showRest = false;
 
-  let blogs: { title: string; date: string; slug: string }[] = [];
+  const mods = import.meta.glob('content/*.md', { eager: true, as: 'raw' }) as Record<string, string>;
+  let blogs: { title: string; date: string; slug: string }[] = Object.entries(mods)
+    .map(([path, text]) => {
+      const lines = text.split(/\r?\n/);
+      let title = '';
+      let date = '';
+      for (const line of lines) {
+        if (!title && line.startsWith('#')) title = line.replace(/^#+/, '').trim();
+        if (!date && line.toLowerCase().startsWith('date:')) date = line.split(':', 2)[1]?.trim() ?? '';
+        if (title && date) break;
+      }
+      const slug = path.substring(path.lastIndexOf('/') + 1).replace(/\.md$/, '');
+      return { title, date, slug };
+    })
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  let fadeDuration = 500;
 
   function segmentsForTyped(t: string) {
     const result: { text: string; class: string }[] = [];
@@ -37,6 +53,19 @@
 
   onMount(() => {
     registerCodeFiles(['frontend/src/routes/+page.svelte']);
+
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const instant = searchParams?.get('instant') === '1';
+
+    if (instant) {
+      typed = commandStr;
+      segments = commandSegments;
+      showRest = true;
+      fadeDuration = 0;
+      cursorVisible = false;
+      return () => {};
+    }
+
     let index = 0;
     const typingInterval = setInterval(() => {
       if (index < commandStr.length) {
@@ -55,20 +84,7 @@
       cursorVisible = !cursorVisible;
     }, 400);
 
-    // Load blog metadata at build time – the glob is evaluated eagerly by Vite
-    const mods = import.meta.glob('content/*.md', { eager: true, as: 'raw' }) as Record<string, string>;
-    blogs = Object.entries(mods).map(([path, text]) => {
-      const lines = text.split(/\r?\n/);
-      let title = '';
-      let date = '';
-      for (const line of lines) {
-        if (!title && line.startsWith('#')) title = line.replace(/^#+/, '').trim();
-        if (!date && line.toLowerCase().startsWith('date:')) date = line.split(':', 2)[1]?.trim() ?? '';
-        if (title && date) break;
-      }
-      const slug = path.substring(path.lastIndexOf('/') + 1).replace(/\.md$/, '');
-      return { title, date, slug };
-    }).sort((a, b) => b.date.localeCompare(a.date));
+    // blog metadata already computed above
 
     return () => {
       clearInterval(typingInterval);
@@ -88,7 +104,7 @@
   </div>
 
   {#if showRest}
-    <div transition:fade={{ duration: 500 }}>
+    <div transition:fade={{ duration: fadeDuration }}>
       <p>Hi. I'm Steve, but you can call me Stovoy - 20+ years code wizard, creator of Evades.io, and Safety Engineer @ OpenAI</p>
 
       <div class="fake-command-line">

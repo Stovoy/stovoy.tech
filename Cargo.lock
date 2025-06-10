@@ -1326,6 +1326,7 @@ dependencies = [
  "opentelemetry 0.20.0",
  "opentelemetry-stdout",
  "pulldown-cmark",
+ "regex",
  "rss",
  "serde",
  "serde_json",

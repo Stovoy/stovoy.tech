@@ -112,10 +112,30 @@ a:hover {
 }
 
 h3 {
-  color: var(--green);
+  color: var(--lavender);
   margin: 2rem 0 1rem 0;
   font-weight: 600;
   font-size: 1.1rem;
+}
+
+h1 {
+  color: var(--blue);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 2.5rem 0 1.2rem 0;
+}
+
+h2 {
+  color: var(--green);
+  font-size: 1.4rem;
+  font-weight: 650;
+  margin: 2rem 0 1rem 0;
+}
+
+h4,
+h5,
+h6 {
+  color: var(--mauve);
 }
 
 .terminal ul {

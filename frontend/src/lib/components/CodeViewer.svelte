@@ -198,7 +198,7 @@
   {#if $isOpenStore}
     ✕ Close Code
   {:else}
-    👁️ View Code
+    💻 View Code
   {/if}
 </button>
 
